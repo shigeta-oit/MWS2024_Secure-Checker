@@ -40,7 +40,7 @@
             font-family: "system-ui";
         }
 
-        /* ファイル添付部分の見た目*/
+        /*ボタンの見た目*/
         #attachment label {
             display: inline-block;
             position: relative;
