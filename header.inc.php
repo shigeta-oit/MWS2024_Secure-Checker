@@ -35,7 +35,9 @@
     <style>
         body {
             padding-top: 80px;
-            background-color: lightgray;
+            background-color: #151820;
+            color: #FFFFFF;
+            font-family: "system-ui";
         }
 
         /* ファイル添付部分の見た目*/
@@ -56,6 +58,11 @@
             opacity: 0;
             width: 100%;
             height: 100%;
+        }
+        #attachment button {
+            background: #666;
+            padding: 8px 14px;
+            border-radius: 8px;
         }
 
     </style>
