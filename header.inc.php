@@ -1,6 +1,6 @@
 <head>
     <meta charset="utf-8">
-    <title>タイトル</title>
+    <title><?=$ServiceName?></title>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="">
@@ -37,5 +37,26 @@
             padding-top: 80px;
             background-color: lightgray;
         }
+
+        /* ファイル添付部分の見た目*/
+        #attachment label {
+            display: inline-block;
+            position: relative;
+            background: #666;
+            color: #fff;
+            font-size: 16px;
+            padding: 10px 18px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        #attachment label input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+        }
+
     </style>
 </head>
