@@ -39,8 +39,13 @@
             color: #FFFFFF;
             font-family: "system-ui";
         }
-
         /*ボタンの見た目*/
+        button {
+            font-family : inherit;
+            border-radius: 8px;
+            background: #666;
+            padding: 8px 14px;
+        }
         #attachment label {
             display: inline-block;
             position: relative;
@@ -58,11 +63,6 @@
             opacity: 0;
             width: 100%;
             height: 100%;
-        }
-        #attachment button {
-            background: #666;
-            padding: 8px 14px;
-            border-radius: 8px;
         }
 
     </style>

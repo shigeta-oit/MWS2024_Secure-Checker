@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-<?php $ServiceName="サービス名"?>
+<?php $ServiceName = "サービス名" ?>
 <?php include('header.inc.php'); ?>
 
 <body>
@@ -8,7 +8,7 @@
     <!-- START Main Area -->
     <main>
         <div class="container">
-            <h1 style="color:#BBBBFF" ><?=$ServiceName?></h1>
+            <h1 style="color:#BBBBFF"><?= $ServiceName ?></h1>
             <form action="result.php" method="post">
                 <div class="form-group">
                     <label for="comment_1">URL</label>
@@ -18,9 +18,7 @@
                         <label><input type="file" class="fileinput" name="FILE">ファイルを添付する</label>
                     </div>
                 </div>
-                <div id="attachment">
-                    <button type="submit">送信</button>
-                </div>
+                <button type="submit">送信</button>
             </form>
         </div>
     </main>
