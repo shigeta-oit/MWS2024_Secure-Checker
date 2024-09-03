@@ -1,0 +1,3 @@
+Flask
+requests
+selenium==3.3.0

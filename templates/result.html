@@ -1,0 +1,94 @@
+<style>
+    main {
+        padding-left: 80px;
+        font-size: 25px;;
+    }
+</style>
+{% extends "layout.html" %}
+{% block content %}
+
+{% if summary['malicious'] >= 1 %}
+<style>
+    body {
+        background-color: #940000;
+    }
+</style>
+{% elif summary['suspicious'] >= 2 %}
+<style>
+    body {
+        color: #000000;
+        background-color: #eeea00;
+    }
+</style>
+{% endif %}
+
+<main>
+    <h1>スキャン結果</h1>
+    {% if summary['malicious'] >= 1 %}
+    <p>危険であると考えられます</p>
+    {% elif summary['suspicious'] >= 2 %}
+    <p>危険な可能性があります</p>
+    {% else %}
+    <p>安全であると考えられます</p>
+    {% endif %}
+
+    {% if scan == "url" %}
+    <p><img src="/static/img/tmp.jpg"></p>
+    <p>URL: {{summary['url']}}</p>
+    <p>最後に分析された日: {{summary['date']}}</p>
+    <br>
+    <p>悪意があるURLであると判定した数: {{summary['malicious']}}</p>
+    <p>悪意がある可能性のあるURLであると判定した数: {{summary['suspicious']}}</p>
+    <p>安全なURLであると判定した数: {{summary['harmless']}}</p>
+    <p>判定できなかった数: {{summary['undetected']}}</p>
+    <p>タイムアウトした数: {{summary['timeout']}}</p>
+    {% endif %}
+
+    {% if scan == "file" %}
+    <p>最後に分析された日: {{summary['date']}}</p>
+    <p>ファイルサイズ: {{summary['size']}} バイト</p>
+    <br>
+    <p>悪意があるファイルであると判定した数: {{summary['malicious']}}</p>
+    <p>悪意がある可能性のあるファイルであると判定した数: {{summary['suspicious']}}</p>
+    <p>安全なファイルであると判定した数: {{summary['harmless']}}</p>
+    <p>判定できなかった数: {{summary['undetected']}}</p>
+    <p>失敗した数: {{summary['failure']}}</p>
+    <p>サポートされていない数: {{summary['type_unsupported']}}</p>
+    <p>タイムアウトした数: {{summary['timeout']+summary['confirmed_timeout']}}</p>
+    {% endif %}
+
+    {% if scan == "hash" %}
+    <p>最後に分析された日: {{summary['date']}}</p>
+    <p>ファイル名: {{summary['name']}}</p>
+    <p>ファイルサイズ: {{summary['size']}} バイト</p>
+    <br>
+    <p>悪意があるファイルであると判定した数: {{summary['malicious']}}</p>
+    <p>悪意がある可能性のあるファイルであると判定した数: {{summary['suspicious']}}</p>
+    <p>安全なファイルであると判定した数: {{summary['harmless']}}</p>
+    <p>判定できなかった数: {{summary['undetected']}}</p>
+    <p>失敗した数: {{summary['failure']}}</p>
+    <p>サポートされていない数: {{summary['type_unsupported']}}</p>
+    <p>タイムアウトした数: {{summary['timeout']+summary['confirmed_timeout']}}</p>
+    {% endif %}
+
+    {% if scan == "ip" %}
+    <p>最後に分析された日: {{summary['date']}}</p>
+    <br>
+    <p>悪意があるIPアドレスであると判定した数: {{summary['malicious']}}</p>
+    <p>悪意がある可能性のあるIPアドレスであると判定した数: {{summary['suspicious']}}</p>
+    <p>安全なIPアドレスであると判定した数: {{summary['harmless']}}</p>
+    <p>判定できなかった数: {{summary['undetected']}}</p>
+    <p>タイムアウトした数: {{summary['timeout']}}</p>
+    {% endif %}
+
+    {% if scan == "domain" %}
+    <p>最後に分析された日: {{summary['date']}}</p>
+    <br>
+    <p>悪意があるドメインであると判定した数: {{summary['malicious']}}</p>
+    <p>悪意がある可能性のあるドメインであると判定した数: {{summary['suspicious']}}</p>
+    <p>安全なドメインであると判定した数: {{summary['harmless']}}</p>
+    <p>判定できなかった数: {{summary['undetected']}}</p>
+    <p>タイムアウトした数: {{summary['timeout']}}</p>
+    {% endif %}
+</main>
+{% endblock %}

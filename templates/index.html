@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block content %}
+<!-- START Main Area -->
+<main>
+    <div class="container">
+        <h1 style="color:#BBBBFF">{{ServiceName}}</h1>
+        <!-- URL -->
+        <form action="/scan_url" method="post">
+            <div class="form-group">
+                <label for="url">URL</label>
+                <input type="text" class="form-control" name="url">
+            </div>
+            <button type="submit">送信</button>
+        </form>
+        <br>
+        <!-- File -->
+        <form action="/scan_file" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="file">ファイル</label>
+                <div id="attachment">
+                    <label><input type="file" class="fileinput" name="file">ファイルを選択</label>
+                    <span class="select-image">選択されていません</span>
+                </div>
+                <div id="checkbox">
+                    <input type="checkbox" name="check" id="ck" checked>
+                    ファイルのハッシュ値を送信する
+                    <p style="color:#a00000">※第三者にファイルの情報を見られる可能性があります</p>
+                </div>
+            </div>
+            <button type="submit">送信</button>
+        </form>
+        <br>
+        <!-- IP -->
+        <form action="/scan_ip" method="post">
+            <div class="form-group">
+                <label for="ip">IPアドレス</label>
+                <input type="text" class="form-control" name="ip">
+            </div>
+            <button type="submit">送信</button>
+        </form>
+        <br>
+        <!-- Domain -->
+        <form action="/scan_domain" method="post">
+            <div class="form-group">
+                        <label for="Domain">ドメイン</label>
+            <input type="text" class="form-control" name="domain">
+            </div>
+            <button type="submit">送信</button>
+        </form>
+    </div>
+</main>
+<!-- END Main Area -->
+{% endblock %}
