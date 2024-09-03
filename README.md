@@ -1,4 +1,4 @@
 # VirusTotal Scan
 app.pyを実行することでWebを開くことができます
 
-※requirements.txtに記載しているPythonのモジュールをインストールしてください
+※requirements.txtに記載しているPythonの外部ライブラリをインストールしてください

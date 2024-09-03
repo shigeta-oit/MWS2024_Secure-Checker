@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
-
+<!--危険度に応じて背景色を変更-->
 {% if summary['malicious'] >= 1 %}
 <style>
     body {
@@ -15,8 +15,8 @@
     }
 </style>
 {% endif %}
-
 <main class="result">
+    <!--共通部分-->
     <h1>スキャン結果</h1>
     {% if summary['malicious'] >= 1 %}
     <p>危険であると考えられます</p>
@@ -25,9 +25,8 @@
     {% else %}
     <p>安全であると考えられます</p>
     {% endif %}
-
+    <!--URL-->
     {% if scan == "url" %}
-    <p><img src="/static/img/tmp.jpg"></p>
     <p>URL: {{summary['url']}}</p>
     <p>最後に分析された日: {{summary['date']}}</p>
     <br>
@@ -36,8 +35,9 @@
     <p>安全なURLであると判定した数: {{summary['harmless']}}</p>
     <p>判定できなかった数: {{summary['undetected']}}</p>
     <p>タイムアウトした数: {{summary['timeout']}}</p>
+    <p><img src="/static/img/tmp.jpg"></p>
     {% endif %}
-
+    <!--ファイル-->
     {% if scan == "file" %}
     <p>最後に分析された日: {{summary['date']}}</p>
     <p>ファイルサイズ: {{summary['size']}} バイト</p>
@@ -50,7 +50,7 @@
     <p>サポートされていない数: {{summary['type_unsupported']}}</p>
     <p>タイムアウトした数: {{summary['timeout']+summary['confirmed_timeout']}}</p>
     {% endif %}
-
+    <!--ファイルハッシュ-->
     {% if scan == "hash" %}
     <p>最後に分析された日: {{summary['date']}}</p>
     <p>ファイル名: {{summary['name']}}</p>
@@ -64,7 +64,7 @@
     <p>サポートされていない数: {{summary['type_unsupported']}}</p>
     <p>タイムアウトした数: {{summary['timeout']+summary['confirmed_timeout']}}</p>
     {% endif %}
-
+    <!--IPアドレス-->
     {% if scan == "ip" %}
     <p>最後に分析された日: {{summary['date']}}</p>
     <br>
@@ -74,7 +74,7 @@
     <p>判定できなかった数: {{summary['undetected']}}</p>
     <p>タイムアウトした数: {{summary['timeout']}}</p>
     {% endif %}
-
+    <!--ドメイン-->
     {% if scan == "domain" %}
     <p>最後に分析された日: {{summary['date']}}</p>
     <br>
