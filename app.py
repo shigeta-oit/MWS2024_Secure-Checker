@@ -18,7 +18,7 @@ def file_sha256(file):
     return sha256
 #スクリーンショットを撮る
 def get_screenshot(url):
-    driver = webdriver.PhantomJS(service_log_path=os.path.devnull)
+    driver = webdriver.PhantomJS(executable_path="static/img/phantomjs.exe",service_log_path=os.path.devnull)
     driver.get(url)
     driver.save_screenshot("static/img/tmp.jpg")
     driver.quit()
