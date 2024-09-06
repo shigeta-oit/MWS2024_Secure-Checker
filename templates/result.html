@@ -25,6 +25,48 @@
     {% else %}
     <p>安全であると考えられます</p>
     {% endif %}
+    <!--グラフ-->
+    <div style="width: 30%">
+        <canvas id="myPieChart"></canvas>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.0.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0 "></script>
+    <script>
+        var summary = JSON.parse('{{ summary|tojson|safe }}');
+        const ctx = document.getElementById("myPieChart").getContext('2d');
+        const myChart = new Chart(ctx, {
+            type: 'pie', 
+            data: {
+                labels: ["非常に危険", "やや危険", "安全", "判定不可", "失敗", "サポートされていない","タイムアウト"],
+                datasets: [{
+                    backgroundColor: [
+                        "#FF8888","#FFFF88","#88FF88","#8888FF", "#FFBB88","#BB88FF","#CCCCCC",
+                    ],
+                    data: [summary.malicious, summary.suspicious, summary.harmless, summary.undetected, summary.failure, summary.type_unsupported, summary.timeout+summary.confirmed_timeout]
+                }]
+            },
+            plugins: [ChartDataLabels],
+            options: {
+                plugins: {
+                    datalabels: { 
+                        display: function(context) {
+                            var value = context.dataset.data[context.dataIndex];
+                            return value > 0;
+                        },
+                        formatter: function(value, context) { 
+                            return context.chart.data.labels[context.dataIndex];
+                        },
+                        color:"#000", 
+                        font: {
+                            weight: "bold", 
+                            size: 24, 
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+    <br>
     <!--URL-->
     {% if scan == "url" %}
     <p>URL: {{summary['url']}}</p>

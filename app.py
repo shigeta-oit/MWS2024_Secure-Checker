@@ -33,7 +33,8 @@ def analyze_url(data):
     undetected=data['data']['attributes']['stats']['undetected']
     harmless=data['data']['attributes']['stats']['harmless']
     timeout=data['data']['attributes']['stats']['timeout']
-    analyze_data={"url":url,"date":date,"malicious":malicious,"suspicious":suspicious,"undetected":undetected,"harmless":harmless,"timeout":timeout}
+    analyze_data={"url":url,"date":date,"malicious":malicious,"suspicious":suspicious,"undetected":undetected,"harmless":harmless,
+                "timeout":timeout,"confirmed_timeout":0,"failure":0,"type_unsupported":0}
     return analyze_data
 #ファイルの分析
 def analyze_file(data):
@@ -77,7 +78,8 @@ def analyze_ip(data):
     undetected=data['data']['attributes']['last_analysis_stats']['undetected']
     harmless=data['data']['attributes']['last_analysis_stats']['harmless']
     timeout=data['data']['attributes']['last_analysis_stats']['timeout']
-    analyze_data={"date":date,"malicious":malicious,"suspicious":suspicious,"undetected":undetected,"harmless":harmless,"timeout":timeout}
+    analyze_data={"date":date,"malicious":malicious,"suspicious":suspicious,"undetected":undetected,"harmless":harmless,
+                "timeout":timeout,"confirmed_timeout":0,"failure":0,"type_unsupported":0}
     return analyze_data
 #ドメインの分析
 def analyze_domain(data):
@@ -88,7 +90,8 @@ def analyze_domain(data):
     undetected=data['data']['attributes']['last_analysis_stats']['undetected']
     harmless=data['data']['attributes']['last_analysis_stats']['harmless']
     timeout=data['data']['attributes']['last_analysis_stats']['timeout']
-    analyze_data={"date":date,"malicious":malicious,"suspicious":suspicious,"undetected":undetected,"harmless":harmless,"timeout":timeout}
+    analyze_data={"date":date,"malicious":malicious,"suspicious":suspicious,"undetected":undetected,"harmless":harmless,
+                "timeout":timeout,"confirmed_timeout":0,"failure":0,"type_unsupported":0}
     return analyze_data
 #ホーム画面
 @app.route('/')
