@@ -39,9 +39,9 @@
             data: {
                 labels: ["非常に危険", "やや危険", "安全", "判定不可", "失敗", "サポートされていない","タイムアウト"],
                 datasets: [{
-                    backgroundColor: [
-                        "#FF8888","#FFFF88","#88FF88","#8888FF", "#FFBB88","#BB88FF","#CCCCCC",
-                    ],
+                    backgroundColor: ["#FF8888","#FFFF88","#88FF88","#8888FF", "#FFBB88","#BB88FF","#CCCCCC",],
+                    borderColor: '#FFF',
+                    borderWidth: 1,
                     data: [summary.malicious, summary.suspicious, summary.harmless, summary.undetected, summary.failure, summary.type_unsupported, summary.timeout+summary.confirmed_timeout]
                 }]
             },
