@@ -39,6 +39,7 @@
             data: {
                 labels: ["非常に危険", "やや危険", "安全", "判定不可", "失敗", "サポートされていない","タイムアウト"],
                 datasets: [{
+                    label: '分析結果',
                     backgroundColor: ["#FF8888","#FFFF88","#88FF88","#8888FF", "#FFBB88","#BB88FF","#CCCCCC",],
                     borderColor: '#FFF',
                     borderWidth: 1,
@@ -47,7 +48,11 @@
             },
             plugins: [ChartDataLabels],
             options: {
+                responsive: true,
                 plugins: {
+                    legend: {
+                            position: 'top',
+                        },
                     datalabels: { 
                         display: function(context) {
                             var value = context.dataset.data[context.dataIndex];
@@ -60,6 +65,17 @@
                         font: {
                             weight: "bold", 
                             size: 24, 
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                const dataset = tooltipItem.dataset;
+                                const total = dataset.data.reduce((acc, value) => acc + value, 0);
+                                const value = dataset.data[tooltipItem.dataIndex];
+                                const percentage = ((value / total) * 100).toFixed(2);
+                                return `${dataset.label}: ${value} (${percentage}%)`;
+                            }
                         }
                     }
                 }
