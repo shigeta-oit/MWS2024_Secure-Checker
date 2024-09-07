@@ -25,6 +25,67 @@
     {% else %}
     <p>安全であると考えられます</p>
     {% endif %}
+    <!--グラフ-->
+    <div class="graph">
+        <canvas id="myPieChart"></canvas>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.0.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0 "></script>
+    <script>
+        var summary = JSON.parse('{{ summary|tojson|safe }}');
+        const ctx = document.getElementById("myPieChart").getContext('2d');
+        const myChart = new Chart(ctx, {
+            type: 'pie', 
+            data: {
+                labels: ["非常に危険", "やや危険", "安全", "判定不可", "失敗", "サポートされていない","タイムアウト"],
+                datasets: [{
+                    label: '分析結果',
+                    backgroundColor: ["#FF8888","#FFFF88","#88FF88","#8888FF", "#FFBB88","#BB88FF","#CCCCCC",],
+                    borderColor: '#FFF',
+                    borderWidth: 2,
+                    data: [summary.malicious, summary.suspicious, summary.harmless, summary.undetected, summary.failure, summary.type_unsupported, summary.timeout+summary.confirmed_timeout]
+                }]
+            },
+            plugins: [ChartDataLabels],
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                            position: 'top',
+                            labels: {
+                                color: "#FFFFFF",
+                            }
+                        },
+                    datalabels: { 
+                        display: function(context) {
+                            var value = context.dataset.data[context.dataIndex];
+                            return value > 0;
+                        },
+                        formatter: function(value, context) { 
+                            return context.chart.data.labels[context.dataIndex];
+                        },
+                        color:"#000", 
+                        font: {
+                            weight: "bold", 
+                            size: 16, 
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                const dataset = tooltipItem.dataset;
+                                const total = dataset.data.reduce((acc, value) => acc + value, 0);
+                                const value = dataset.data[tooltipItem.dataIndex];
+                                const percentage = ((value / total) * 100).toFixed(2);
+                                return `${dataset.label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+    <br>
     <!--URL-->
     {% if scan == "url" %}
     <p>URL: {{summary['url']}}</p>
