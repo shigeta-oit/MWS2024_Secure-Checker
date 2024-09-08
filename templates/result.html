@@ -37,7 +37,7 @@
         const myChart = new Chart(ctx, {
             type: 'pie', 
             data: {
-                labels: ["非常に危険", "やや危険", "安全", "判定不可", "失敗", "サポートされていない","タイムアウト"],
+                labels: ["危険", "怪しい", "安全", "判定不可", "失敗", "非対応","タイムアウト"],
                 datasets: [{
                     label: '分析結果',
                     backgroundColor: ["#DD6666","#DDDD44","#66DD66","#6666DD", "#DD9966","#9966DD","#999999",],
@@ -98,18 +98,21 @@
     {% if scan == "url" %}
     <p>URL: {{summary['url']}}</p>
     <p>最後に分析された日: {{summary['date']}}</p>
+    <!--
     <br>
     <p>悪意があるURLであると判定した数: {{summary['malicious']}}</p>
     <p>悪意がある可能性のあるURLであると判定した数: {{summary['suspicious']}}</p>
     <p>安全なURLであると判定した数: {{summary['harmless']}}</p>
     <p>判定できなかった数: {{summary['undetected']}}</p>
     <p>タイムアウトした数: {{summary['timeout']}}</p>
+    -->
     <p><img src="/static/img/tmp.jpg"></p>
     {% endif %}
     <!--ファイル-->
     {% if scan == "file" %}
     <p>最後に分析された日: {{summary['date']}}</p>
     <p>ファイルサイズ: {{summary['size']}} バイト</p>
+    <!--
     <br>
     <p>悪意があるファイルであると判定した数: {{summary['malicious']}}</p>
     <p>悪意がある可能性のあるファイルであると判定した数: {{summary['suspicious']}}</p>
@@ -118,12 +121,14 @@
     <p>失敗した数: {{summary['failure']}}</p>
     <p>サポートされていない数: {{summary['type_unsupported']}}</p>
     <p>タイムアウトした数: {{summary['timeout']+summary['confirmed_timeout']}}</p>
+    -->
     {% endif %}
     <!--ファイルハッシュ-->
     {% if scan == "hash" %}
     <p>最後に分析された日: {{summary['date']}}</p>
     <p>ファイル名: {{summary['name']}}</p>
     <p>ファイルサイズ: {{summary['size']}} バイト</p>
+    <!--
     <br>
     <p>悪意があるファイルであると判定した数: {{summary['malicious']}}</p>
     <p>悪意がある可能性のあるファイルであると判定した数: {{summary['suspicious']}}</p>
@@ -132,29 +137,35 @@
     <p>失敗した数: {{summary['failure']}}</p>
     <p>サポートされていない数: {{summary['type_unsupported']}}</p>
     <p>タイムアウトした数: {{summary['timeout']+summary['confirmed_timeout']}}</p>
+    -->
     {% endif %}
     <!--IPアドレス-->
     {% if scan == "ip" %}
     <p>最後に分析された日: {{summary['date']}}</p>
+    <p>国: {{ summary['country'] }}</p>
+    <p>ISP: {{ summary['isp'] }}</p>
+    <!--
     <br>
     <p>悪意があるIPアドレスであると判定した数: {{summary['malicious']}}</p>
     <p>悪意がある可能性のあるIPアドレスであると判定した数: {{summary['suspicious']}}</p>
     <p>安全なIPアドレスであると判定した数: {{summary['harmless']}}</p>
     <p>判定できなかった数: {{summary['undetected']}}</p>
     <p>タイムアウトした数: {{summary['timeout']}}</p>
-    <p>国: {{ summary['country'] }}</p>
-    <p>ISP: {{ summary['isp'] }}</p>
+    -->
     {% endif %}
     <!--ドメイン-->
     {% if scan == "domain" %}
     <p>最後に分析された日: {{summary['date']}}</p>
+    <!--
     <br>
     <p>悪意があるドメインであると判定した数: {{summary['malicious']}}</p>
     <p>悪意がある可能性のあるドメインであると判定した数: {{summary['suspicious']}}</p>
     <p>安全なドメインであると判定した数: {{summary['harmless']}}</p>
     <p>判定できなかった数: {{summary['undetected']}}</p>
     <p>タイムアウトした数: {{summary['timeout']}}</p>
+    -->
     {% endif %}
+    
     <br>
     <p>検出された脅威の主な種類: {{summary['name']}}</p>
     <p>概要: {{summary['description']}}</p>
