@@ -170,13 +170,26 @@
     <br>
     <details>
         <summary>詳細な情報</summary>
-        {% for engine, detail in details.items() %}
-        <p>{{detail['engine_name']}}の検出結果</p>
-        <p>分析方法:{{detail['method']}}</p>
-        <p>カテゴリー:{{detail['category']}}</p>
-        <p>分析結果:{{detail['result']}}</p>
-        <br>
-        {% endfor %}
+        <table>
+            <thead>
+                <tr>
+                    <th>エンジン名</th>
+                    <th>分析方法</th>
+                    <th>カテゴリー</th>
+                    <th>分析結果</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for engine, detail in details.items() %}
+                <tr>
+                    <td>{{ detail['engine_name'] }}</td>
+                    <td>{{ detail['method'] }}</td>
+                    <td>{{ detail['category'] }}</td>
+                    <td>{{ detail['result'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </details>
 </main>
 {% endblock %}
