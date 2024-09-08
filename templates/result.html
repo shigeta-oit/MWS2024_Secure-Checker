@@ -11,7 +11,7 @@
 <style>
     body {
         color: #000000;
-        background-color: #eeea00;
+        background-color: #bebb00;
     }
 </style>
 {% endif %}
@@ -29,8 +29,8 @@
     <div class="graph">
         <canvas id="myPieChart"></canvas>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.0.0/dist/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0 "></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
     <script>
         var summary = JSON.parse('{{ summary|tojson|safe }}');
         const ctx = document.getElementById("myPieChart").getContext('2d');
@@ -40,15 +40,21 @@
                 labels: ["非常に危険", "やや危険", "安全", "判定不可", "失敗", "サポートされていない","タイムアウト"],
                 datasets: [{
                     label: '分析結果',
-                    backgroundColor: ["#FF8888","#FFFF88","#88FF88","#8888FF", "#FFBB88","#BB88FF","#CCCCCC",],
-                    borderColor: '#FFF',
+                    backgroundColor: ["#DD6666","#DDDD44","#66DD66","#6666DD", "#DD9966","#9966DD","#999999",],
+                    borderColor: '#FFFFFF',
                     borderWidth: 2,
-                    data: [summary.malicious, summary.suspicious, summary.harmless, summary.undetected, summary.failure, summary.type_unsupported, summary.timeout+summary.confirmed_timeout]
+                    data: [summary.malicious, summary.suspicious, summary.harmless, summary.undetected, 
+                    summary.failure, summary.type_unsupported, summary.timeout+summary.confirmed_timeout]
                 }]
             },
             plugins: [ChartDataLabels],
             options: {
                 responsive: true,
+                layout: {
+                    padding: {
+                        top: 5,
+                    }
+                },
                 plugins: {
                     legend: {
                             position: 'top',
@@ -64,10 +70,12 @@
                         formatter: function(value, context) { 
                             return context.chart.data.labels[context.dataIndex];
                         },
-                        color:"#000", 
+                        color:"#000000",
+                        clamp: true, 
+                        textAlign: 'center',
                         font: {
                             weight: "bold", 
-                            size: 16, 
+                            size: 10.5, 
                         }
                     },
                     tooltip: {
@@ -134,6 +142,8 @@
     <p>安全なIPアドレスであると判定した数: {{summary['harmless']}}</p>
     <p>判定できなかった数: {{summary['undetected']}}</p>
     <p>タイムアウトした数: {{summary['timeout']}}</p>
+    <p>国: {{ summary['country'] }}</p>
+    <p>ISP: {{ summary['isp'] }}</p>
     {% endif %}
     <!--ドメイン-->
     {% if scan == "domain" %}
@@ -145,5 +155,28 @@
     <p>判定できなかった数: {{summary['undetected']}}</p>
     <p>タイムアウトした数: {{summary['timeout']}}</p>
     {% endif %}
+    <br>
+    <p>検出された脅威の主な種類: {{summary['name']}}</p>
+    <p>概要: {{summary['description']}}</p>
+    <p>リスクレベル: {{summary['risk_level']}}</p>
+    <p>主な動作:</p>
+    <ul>
+        {% for action in summary.actions %}
+        <li>{{action}}</li>
+        {% endfor %}
+    </ul>
+    <p>推奨される対策:</p>
+    <p>{{ summary['recommendation'] }}</p>
+    <br>
+    <details>
+        <summary>詳細な情報</summary>
+        {% for engine, detail in details.items() %}
+        <p>{{detail['engine_name']}}の検出結果</p>
+        <p>分析方法:{{detail['method']}}</p>
+        <p>カテゴリー:{{detail['category']}}</p>
+        <p>分析結果:{{detail['result']}}</p>
+        <br>
+        {% endfor %}
+    </details>
 </main>
 {% endblock %}

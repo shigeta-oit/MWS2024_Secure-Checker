@@ -42,7 +42,7 @@ VirusTotalで検出される脅威
 
 VirusTotalでURLを検証した際の代表的な検出名
 Malware:
-例: Malware, Malicious, Malicious URL, Phishing, Exploit, Malware Site, Threat, Malicious Site
+例: Malware, Malware Site, Malicious, Malicious URL, Threat, Malicious Site
 Phishing:
 例: Phishing, Phishing Site, Phishing URL, Fraudulent, Fake Site
 Adware:
