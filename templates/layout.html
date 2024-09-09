@@ -48,8 +48,8 @@
         main.result,
         main.support,
         main.contact {
-            padding-left: 80px;
-            padding-right: 40px;
+            padding-left: 40px;
+            padding-right: 10px;
             font-size: 25px;
         }
 
@@ -89,10 +89,22 @@
             width: 400px;
         }
 
+        .accordion{
+            background:#32394d;
+        }
+
         table {
-            max-width: 90%;
-            width: 600px;
+            max-width: 100%;
+            width: 40%;
             font-size: 14px;
+        }
+
+        th {
+            padding: 5px 0px 2px 10px;
+        }
+
+        td {
+            padding: 0px 0px 2px 10px;
         }
 
         div.graph {
@@ -108,6 +120,38 @@
         #checkbox input[type="checkbox"]:not(:checked)+p {
             display: block;
         }
+
+        summary{
+            position: relative;
+            list-style: none; 
+            padding: 15px 45px 15px 25px;
+            border:1px solid #FFFFFF;
+            cursor: pointer; 
+        }
+
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary::after{
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            top: calc(50% - 10px);
+            right: 25px;
+            border-right: 4px solid #FFFFFF;
+            border-bottom: 4px solid #FFFFFF;
+            box-sizing: border-box;
+            content: "";
+            transform: rotate(45deg);
+            transition: top 0.4s ease-out, transform 0.4s ease-out;
+        }
+
+        details[open] summary::after{
+            top: calc(50% - 5px);
+            transform: rotate(-135deg);
+        }
+
         /*
         details {
         border: 1px solid #aaa;
