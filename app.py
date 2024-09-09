@@ -501,7 +501,6 @@ def contact():
 def scan_url():
     url_to_scan = request.form['url']
     url = 'https://www.virustotal.com/api/v3/urls'
-    encoded_url = requests.utils.quote(url_to_scan, safe='')
     headers = {
         'x-apikey': API_KEY
     }
@@ -518,7 +517,9 @@ def scan_url():
 def scan_file():
     file = request.files['file']
     ck = request.form.get('check')
-    headers = {'x-apikey': API_KEY}
+    headers = {
+        'x-apikey': API_KEY
+        }
     if ck != "on":
         url = 'https://www.virustotal.com/api/v3/files'
         headers = {
@@ -526,7 +527,6 @@ def scan_file():
         }
         files = {'file': (file.filename, file.stream, file.mimetype)}
         response = requests.post(url, headers=headers, files=files)
-        
         if response.status_code == 200:
             result = response.json()
             analysis_id = result['data']['id']
@@ -553,7 +553,9 @@ def scan_domain():
 #分析結果の取得と結果の表示
 @app.route('/results/<scan>/<analysis_id>')
 def get_results(analysis_id,scan):
-    headers = {'x-apikey': API_KEY}
+    headers = {
+        'x-apikey': API_KEY
+    }
     #URL
     if scan == "url":
         url = f'https://www.virustotal.com/api/v3/urls/{analysis_id}'
