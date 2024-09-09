@@ -1,13 +1,13 @@
 {% extends "layout.html" %}
 {% block content %}
 <!--危険度に応じて背景色を変更-->
-{% if summary['malicious'] >= 1 %}
+{% if summary['malicious'] >= 1 and summary['risk_level'] != "不明" %}
 <style>
     body {
         background-color: #940000;
     }
 </style>
-{% elif summary['suspicious'] >= 2 %}
+{% elif summary['suspicious'] >= 2 and summary['risk_level'] != "不明" %}
 <style>
     body {
         color: #000000;
