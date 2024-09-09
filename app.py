@@ -8,7 +8,7 @@ import os
 import hashlib
 
 ServiceName = "VirusTotal Scan"
-API_KEY = '64a2e867d722327cc2f8372ec04f3c74fda01dc218414f9386632986c5160f21'
+API_KEY = 'a8084c5dfb91ac17e34c90f7ec51dbd46a967479a75ce71fa9f4412e47d81db3'
 app = Flask(__name__, static_url_path='/static')
 
 #ハッシュ値を計算する
@@ -356,7 +356,7 @@ def interpret_results(result):
             malware_type = "spam"
         elif details["result"] and details["result"].lower().find("drive-by download")>=0:
             malware_type = "drive-by download"
-        elif details["result"] and details["result"].lower().find("rat")>=0:
+        elif details["result"] and details["result"].lower().find("rat")>=0 and not("unrated" in details["result"].lower()):
             malware_type = "rat"
         elif details["result"] and details["result"].lower().find("malware")>=0:
             malware_type = "malware"
@@ -369,17 +369,17 @@ def interpret_results(result):
     return behavior_info
 #URLの分析
 def analyze_url(data):
-    url = data['meta']['url_info']['url']
+    url = data['data']['attributes']['url']
     get_screenshot(url)
-    timestamp = data['data']['attributes']['date']
+    timestamp = data['data']['attributes']['last_analysis_date']
     date = datetime.datetime.fromtimestamp(timestamp)
-    malicious=data['data']['attributes']['stats']['malicious']
-    suspicious=data['data']['attributes']['stats']['suspicious']
-    undetected=data['data']['attributes']['stats']['undetected']
-    harmless=data['data']['attributes']['stats']['harmless']
-    timeout=data['data']['attributes']['stats']['timeout']
-    details=data["data"]["attributes"]["results"]
-    behavior_info=interpret_results(data["data"]["attributes"]["results"])
+    malicious=data['data']['attributes']['last_analysis_stats']['malicious']
+    suspicious=data['data']['attributes']['last_analysis_stats']['suspicious']
+    undetected=data['data']['attributes']['last_analysis_stats']['undetected']
+    harmless=data['data']['attributes']['last_analysis_stats']['harmless']
+    timeout=data['data']['attributes']['last_analysis_stats']['timeout']
+    details=data["data"]["attributes"]["last_analysis_results"]
+    behavior_info=interpret_results(data["data"]["attributes"]["last_analysis_results"])
     name=behavior_info["name"]
     description=behavior_info["description"]
     actions=behavior_info["actions"]
@@ -501,6 +501,7 @@ def contact():
 def scan_url():
     url_to_scan = request.form['url']
     url = 'https://www.virustotal.com/api/v3/urls'
+    encoded_url = requests.utils.quote(url_to_scan, safe='')
     headers = {
         'x-apikey': API_KEY
     }
@@ -508,7 +509,7 @@ def scan_url():
     response = requests.post(url, headers=headers, data=params)
     if response.status_code == 200:
         result = response.json()
-        analysis_id = result['data']['id']
+        analysis_id = result['data']['id'].split('-')[1]
         return redirect(url_for('get_results', analysis_id=analysis_id,scan="url"))
     else:
         return redirect(url_for('error',message=f"URLのスキャン中にエラーが発生しました: {response.status_code}"))
@@ -555,16 +556,15 @@ def get_results(analysis_id,scan):
     headers = {'x-apikey': API_KEY}
     #URL
     if scan == "url":
-        url = f'https://www.virustotal.com/api/v3/analyses/{analysis_id}'
+        url = f'https://www.virustotal.com/api/v3/urls/{analysis_id}'
         while True:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
                 result = response.json()
-                if result['data']['attributes']['status'] == 'completed':
-                    analyzed_result,details=analyze_url(result)
-                    return render_template('result.html', summary=analyzed_result,ServiceName=ServiceName,scan=scan,details=details)
-                else:
-                    time.sleep(5)
+                analyzed_result,details=analyze_url(result)
+                return render_template('result.html', summary=analyzed_result,ServiceName=ServiceName,scan=scan,details=details)
+            elif response.status_code == 204 or response.status_code == 404:
+                time.sleep(10)
             else:
                 return redirect(url_for('error',message=f"エラー: {response.status_code}"))
     #ファイル
