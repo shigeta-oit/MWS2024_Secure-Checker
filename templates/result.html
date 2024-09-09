@@ -18,9 +18,9 @@
 <main class="result">
     <!--共通部分-->
     <h1>スキャン結果</h1>
-    {% if summary['malicious'] >= 1 %}
+    {% if summary['malicious'] >= 1 and summary['risk_level'] != "不明" %}
     <p>危険であると考えられます</p>
-    {% elif summary['suspicious'] >= 2 %}
+    {% elif summary['suspicious'] >= 2 or summary['malicious'] >= 1 %}
     <p>危険な可能性があります</p>
     {% else %}
     <p>安全であると考えられます</p>
