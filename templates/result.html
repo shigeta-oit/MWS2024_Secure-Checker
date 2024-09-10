@@ -183,7 +183,13 @@
         <summary>
             <p class="open">詳細な情報</p>
         </summary>
-        <div class="accordion">
+        {% if summary['malicious'] >= 1 and summary['risk_level'] != "不明" %}
+        <div style="background:#a72b2b">
+        {% elif summary['suspicious'] >= 2 and summary['risk_level'] != "不明" %}
+        <div style="background:#bdbb3c">
+        {% else %}
+        <div style="background:#32394d">
+        {% endif %}
             <table>
                 <thead>
                     <tr>

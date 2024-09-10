@@ -310,61 +310,116 @@ def interpret_behavior(malware_type):
     return behavior_descriptions.get(malware_type, behavior_descriptions["unknown"])
 #マルウェアタイプの分析
 def interpret_results(result):
+    sum=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     malware_type = "unknown"
     for engine, details in result.items():
         if details["result"] and details["result"].lower().find("virus")>=0:
-            malware_type = "virus"
+            num[0]=num[0]+1
         elif details["result"] and details["result"].lower().find("trojan")>=0:
-            malware_type = "trojan"
+            num[1]=num[1]+1
         elif details["result"] and details["result"].lower().find("worm")>=0:
-            malware_type = "worm"
+            num[2]=num[2]+1
         elif details["result"] and details["result"].lower().find("ransomware")>=0:
-            malware_type = "ransomware"
+            num[3]=num[3]+1
         elif details["result"] and (details["result"].lower().find("spyware")>=0 or "data harvesting" in details["result"].lower() or "information theft" in details["result"].lower()):
-            malware_type = "spyware"
+            num[4]=num[4]+1
         elif details["result"] and (details["result"].lower().find("adware")>=0 or "advertising" in details["result"].lower()):
-            malware_type = "adware"
+            num[5]=num[5]+1
         elif details["result"] and details["result"].lower().find("backdoor")>=0:
-            malware_type = "backdoor"
+            num[6]=num[6]+1
         elif details["result"] and details["result"].lower().find("rootkit")>=0:
-            malware_type = "rootkit"
+            num[7]=num[7]+1
         elif details["result"] and details["result"].lower().find("bot")>=0:
-            malware_type = "bot"
+            num[8]=num[8]+1
         elif details["result"] and details["result"].lower().find("keylogger")>=0:
-            malware_type = "keylogger"
+            num[9]=num[9]+1
         elif details["result"] and details["result"].lower().find("dropper")>=0:
-            malware_type = "dropper"
+            num[10]=num[10]+1
         elif details["result"] and details["result"].lower().find("exploit")>=0:
-            malware_type = "exploit"
+            num[11]=num[11]+1
         elif details["result"] and (details["result"].lower().find("phishing")>=0 or details["result"].lower().find("fraudulent")>=0 or "fake site" in details["result"].lower()):
-            malware_type = "phishing"
+            num[12]=num[12]+1
         elif details["result"] and details["result"].lower().find("xss")>=0:
-            malware_type = "xss"
+            num[13]=num[13]+1
         elif details["result"] and (details["result"].lower().find("fraud")>=0 or details["result"].lower().find("scam")>=0):
-            malware_type = "fraud"
+            num[14]=num[14]+1
         elif details["result"] and details["result"].lower().find("scareware")>=0:
-            malware_type = "scareware"
+            num[15]=num[15]+1
         elif details["result"] and (details["result"].lower().find("crypto")>=0 or "mining" in details["result"].lower()):
-            malware_type = "cryptominer"
+            num[16]=num[16]+1
         elif details["result"] and (details["result"].lower().find("pup")>=0 or "potentially unwanted program" in details["result"].lower()):
-            malware_type = "pup"
+            num[17]=num[17]+1
         elif details["result"] and (details["result"].lower().find("c2")>=0 or "command and control" in details["result"].lower()):
-            malware_type = "c2"
+            num[18]=num[18]+1
         elif details["result"] and details["result"].lower().find("riskware")>=0:
-            malware_type = "riskware"
+            num[19]=num[19]+1
         elif details["result"] and details["result"].lower().find("spam")>=0:
-            malware_type = "spam"
+            num[20]=num[20]+1
         elif details["result"] and details["result"].lower().find("drive-by download")>=0:
-            malware_type = "drive-by download"
+            num[21]=num[21]+1
         elif details["result"] and details["result"].lower().find("rat")>=0 and not("unrated" in details["result"].lower()):
-            malware_type = "rat"
+            num[22]=num[22]+1
         elif details["result"] and details["result"].lower().find("malware")>=0:
-            malware_type = "malware"
+            num[23]=num[23]+1
         elif details["result"] and (details["result"].lower().find("malicious")>=0 or details["result"].lower().find("threat")>=0
                                     or details["result"].lower().find("suspicious")>=0 or details["result"].lower().find("unwanted")>=0):
+            num[24]=num[24]+1
+    max_i=0
+    for i in range(1,23):
+        if num[max_i]<num[i]:
+            max_i=i
+    if num[max_i]==0:
+        if num[24]>0:
             malware_type = "something threat"
-        if malware_type != "unknown" and malware_type != "something threat":
-            break
+    else:
+        if max_i==0:
+            malware_type = "virus"
+        elif max_i==1:
+            malware_type = "trojan"
+        elif max_i==2:
+            malware_type = "worm"    
+        elif max_i==3:
+            malware_type = "ransomware"
+        elif max_i==4:
+            malware_type = "spyware"
+        elif max_i==5:
+            malware_type = "adware"
+        elif max_i==6:
+            malware_type = "backdoor"
+        elif max_i==7:
+            malware_type = "rootkit"
+        elif max_i==8:
+            malware_type = "bot"
+        elif max_i==9:
+            malware_type = "keylogger"
+        elif max_i==10:
+            malware_type = "dropper"
+        elif max_i==11:
+            malware_type = "exploit"
+        elif max_i==12:
+            malware_type = "phishing"
+        elif max_i==13:
+            malware_type = "xss"
+        elif max_i==14:
+            malware_type = "fraud"
+        elif max_i==15:
+            malware_type = "scareware"
+        elif max_i==16:
+            malware_type = "cryptominer"
+        elif max_i==17:
+            malware_type = "pup"
+        elif max_i==18:
+            malware_type = "c2"
+        elif max_i==19:
+            malware_type = "riskware"
+        elif max_i==20:
+            malware_type = "spam"
+        elif max_i==21:
+            malware_type = "drive-by download"
+        elif max_i==22:
+            malware_type = "rat"
+        elif max_i==23:
+            malware_type = "malware"
     behavior_info = interpret_behavior(malware_type)
     return behavior_info
 #URLの分析
@@ -536,6 +591,11 @@ def scan_file():
     else:
         hash=file_sha256(file)
         return redirect(url_for('get_results', analysis_id=hash,scan="hash"))
+#ハッシュが入力された場合の処理
+@app.route('/scan_hash', methods=['POST'])
+def scan_hash():
+    hash = request.form['hash']
+    return redirect(url_for('get_results', analysis_id=hash,scan="hash"))
 #IPアドレスが入力された場合の処理
 @app.route('/scan_ip', methods=['POST'])
 def scan_ip():
