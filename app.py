@@ -427,7 +427,7 @@ def analyze_hash(data):
     timestamp = data['data']['attributes']['last_analysis_date']
     date = datetime.datetime.fromtimestamp(timestamp)
     size = data['data']['attributes']['size']
-    name = data['data']['attributes']['meaningful_name']
+    filename = data['data']['attributes']['meaningful_name']
     malicious=data['data']['attributes']['last_analysis_stats']['malicious']
     suspicious=data['data']['attributes']['last_analysis_stats']['suspicious']
     undetected=data['data']['attributes']['last_analysis_stats']['undetected']
@@ -443,7 +443,7 @@ def analyze_hash(data):
     actions=behavior_info["actions"]
     risk_level=behavior_info["risk_level"]
     recommendation=behavior_info["recommendation"]
-    analyze_data={"date":date,"size":size,"name":name,"malicious":malicious,"suspicious":suspicious,"undetected":undetected,"harmless":harmless,
+    analyze_data={"date":date,"size":size,"filename":filename,"malicious":malicious,"suspicious":suspicious,"undetected":undetected,"harmless":harmless,
                 "timeout":timeout,"confirmed_timeout":confirmed_timeout,"failure":failure,"type_unsupported":type_unsupported,
                 "name":name,"description":description,"actions":actions,"risk_level":risk_level,"recommendation":recommendation}
     return analyze_data,details
