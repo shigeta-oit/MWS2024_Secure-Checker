@@ -578,7 +578,6 @@ def analyze_ip(data):
     risk_level=behavior_info["risk_level"]
     recommendation=behavior_info["recommendation"]
     whois = extract_whois_info(data["data"]["attributes"].get('whois', 'Unknown'))
-    print(reputation)
     analyze_data={"date":date,"malicious":malicious,"suspicious":suspicious,"undetected":undetected,"harmless":harmless,
                 "timeout":timeout,"confirmed_timeout":0,"failure":0,"type_unsupported":0,
                 "country":country,"asn":asn,"as_owner":as_owner,"reverse_dns":reverse_dns,"network":network,"reputation":reputation,
@@ -776,7 +775,7 @@ def get_results(analysis_id,scan):
 @app.route('/traceroute_result')
 def traceroute_result():
     ip_address = request.args.get('ip_address')
-
+    print(ip_address)
     with traceroute_lock:
         result = traceroute_results.get(ip_address, '通信経路の取得に失敗しました')
 

@@ -101,7 +101,7 @@
                 return;
             }
 
-            fetch('/traceroute_result?ip_address=${ipAddress}')
+            fetch(`/traceroute_result?ip_address={{ ip_address }}`)
                 .then(response => response.json())
                 .then(data => {
                     const tracerouteResults = document.getElementById('traceroute-results');
