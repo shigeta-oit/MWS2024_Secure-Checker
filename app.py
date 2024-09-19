@@ -1,16 +1,84 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from selenium import webdriver
 from datetime import datetime
+import datetime
 import threading,webbrowser
 import requests
 import time
 import os
 import hashlib
+import re
+import subprocess
+import socket
+from urllib.parse import urlparse
+import validators
+import ipaddress
 
 ServiceName = "VirusTotal Scan"
 API_KEY = 'a8084c5dfb91ac17e34c90f7ec51dbd46a967479a75ce71fa9f4412e47d81db3'
 app = Flask(__name__, static_url_path='/static')
+traceroute_results = {}
+traceroute_lock = threading.Lock()
 
+TRANSLATIONS = {
+    "blacklist": "ブラックリスト",
+    "harmless": "無害",
+    "malicious": "悪意あり",
+    "suspicious": "疑わしい",
+    "undetected": "未検出",
+    "unrated": "評価なし",
+    "clean": "安全",
+    "malware": "マルウェア",
+    "phishing": "フィッシング",
+    "spam": "スパム",
+    "malicious site": "悪意のあるサイト",
+    "malware distribution site": "マルウェア配布サイト"
+}
+
+def get_traceroute(ip_address):
+    """通信経路を取得するための関数"""
+    # Windows 環境と Unix 環境でコマンドを切り替え
+    command = ['tracert', ip_address] if os.name == 'nt' else ['traceroute', ip_address]
+    
+    try:
+        # コマンドの実行
+        result = subprocess.run(command, text=True, capture_output=True, timeout=180)
+        
+        # 正常な出力を返す
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        # コマンドの実行に失敗した場合
+        return f"通信経路の取得に失敗しました: {e}"
+    except Exception as e:
+        # その他のエラー
+        return f"通信経路の取得中にエラーが発生しました: {e}"
+
+def extract_whois_info(whois_data):
+    """WHOIS情報からCIDR、住所、登録日、更新日を抽出する"""
+    cidr_pattern = re.compile(r'CIDR:\s*([^\n]*)')
+    address_pattern = re.compile(r'address:\s*([^\n]*)')
+    regdate_pattern = re.compile(r'RegDate:\s*([^\n]*)')
+    updated_pattern = re.compile(r'Updated:\s*([^\n]*)')
+
+    cidr = cidr_pattern.search(whois_data).group(1) if cidr_pattern.search(whois_data) else 'N/A'
+    address = address_pattern.search(whois_data).group(1) if address_pattern.search(whois_data) else 'N/A'
+    regdate = regdate_pattern.search(whois_data).group(1) if regdate_pattern.search(whois_data) else 'N/A'
+    updated = updated_pattern.search(whois_data).group(1) if updated_pattern.search(whois_data) else 'N/A'
+
+    return {
+        'cidr': cidr,
+        'address': address,
+        'regdate': regdate,
+        'updated': updated
+    }
+
+def cidr_to_range(cidr):
+    """CIDR形式からネットワーク範囲に変換する"""
+    try:
+        network = ipaddress.ip_network(cidr, strict=False)
+        return f"{network.network_address} - {network.broadcast_address}"
+    except ValueError:
+        return "不明なネットワーク範囲"
 #ハッシュ値を計算する
 def file_sha256(file):
     file.seek(0)
