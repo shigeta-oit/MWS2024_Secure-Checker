@@ -266,7 +266,7 @@
         <h2>WHOIS情報</h2>
             <p>CIDR: {% if whois.cidr != 'Unknown' %}{{ whois.cidr }}
                 {% else %}{{ summary.cidr_sub }}{% endif %}</p>
-            <p>管理している所(住所): {{ whois.address }}</p>
+            <p>管理している住所: {{ whois.address }}</p>
             <p>登録日: {{ whois.regdate }}</p>
             <p>更新日: {{ whois.updated }}</p>
     {% else %}
