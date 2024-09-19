@@ -113,24 +113,6 @@ details[open] summary::after{
     transform: rotate(-135deg);
 }
 
-.container {
-    display: flex;
-}
-
-.left-section, .right-section {
-    padding: 10px;
-}
-
-.left-section {
-    width: 40%;
-    position: relative;
-}
-
-.right-section {
-    width: 60%;
-    overflow-y: auto;
-}
-
 /* 円グラフの上にスコアを表示する */
 .score-display {
     position: absolute;

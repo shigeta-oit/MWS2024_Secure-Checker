@@ -93,7 +93,6 @@
     </script>
     <script>
         let fetchInterval;
-
         // 通信経路結果をサーバーにリクエストして取得する関数
         function fetchTraceroute() {
             const ipAddress = "{{ ip_address }}";
@@ -102,7 +101,7 @@
                 return;
             }
 
-            fetch(`/traceroute_result?ip_address=${ipAddress}`)
+            fetch('/traceroute_result?ip_address=${ipAddress}')
                 .then(response => response.json())
                 .then(data => {
                     const tracerouteResults = document.getElementById('traceroute-results');
@@ -128,10 +127,10 @@
                 fetchInterval = setInterval(fetchTraceroute, 10000);  // 10秒間隔で実行
             }
             // テンプレート変数をJavaScriptで使用する
-            const harmlessCount = Number("{{ data.harmless_count | default(0) }}");
-            const maliciousCount = Number("{{ data.malicious_count | default(0) }}");
-            const suspiciousCount = Number("{{ data.suspicious_count | default(0) }}");
-            const undetectedCount = Number("{{ data.undetected_count | default(0) }}");
+            const harmlessCount = Number("{{ summary.harmless | default(0) }}");
+            const maliciousCount = Number("{{ summary.malicious | default(0) }}");
+            const suspiciousCount = Number("{{ summary.suspicious | default(0) }}");
+            const undetectedCount = Number("{{ summary.undetected | default(0) }}");
             const totalCount = harmlessCount + maliciousCount + suspiciousCount + undetectedCount;
             const scoreElement = document.getElementById('score-circle');
             
@@ -240,6 +239,7 @@
     {% if scan == "url" %}
     <p>URL: {{summary['url']}}</p>
     <p>最後に分析された日: {{summary['date']}}</p>
+    <p>レピュテーションスコア: {{ summary['reputation'] }}</p>
     <p><img src="/static/img/tmp.jpg"></p>
     {% endif %}
     <!--ファイル-->
@@ -252,12 +252,53 @@
     <p>最後に分析された日: {{summary['date']}}</p>
     <p>ファイル名: {{summary['filename']}}</p>
     <p>ファイルサイズ: {{summary['size']}} バイト</p>
+    <p>レピュテーションスコア: {{ summary['reputation'] }}</p>
     {% endif %}
     <!--IPアドレス ドメイン-->
     {% if scan == "ip_domain" %}
     <p>最後に分析された日: {{summary['date']}}</p>
-    <p>国: {{ summary['country'] }}</p>
-    <p>ISP: {{ summary['asn'] }}</p>
+    {% if summary['ip'] %}
+        <p>IPアドレス: {{ summary['ip'] }}</p>
+        <p>国: {{ summary['country'] }}</p>
+        <p>AS名: {{ summary['as_owner'] }}</p>
+        <p>AS番号: {{ summary['asn'] }}</p>
+        <p>ネットワーク範囲: {{ summary['network'] }}</p>
+        <h2>WHOIS情報</h2>
+            <p>CIDR: {% if whois.cidr != 'Unknown' %}{{ whois.cidr }}
+                {% else %}{{ summary.cidr_sub }}{% endif %}</p>
+            <p>管理している所(住所): {{ whois.address }}</p>
+            <p>登録日: {{ whois.regdate }}</p>
+            <p>更新日: {{ whois.updated }}</p>
+    {% else %}
+        <p>ドメイン: {{ summary['domain'] }}</p>
+        <p>このドメインにはIPアドレスは登録されていません。</p>
+    {% endif %}
+    <h2>レピュテーションスコア:{{ summary['reputation'][0] }} </h2>
+    <h2>マルウェアホスティングの履歴</h2>
+    {% if summary['detected_urls'] or summary['undetected_downloaded_samples'] %}
+        <div class="result-section">
+            {% if summary['detected_urls'] %}
+                <h4>検出されたマルウェアのURL:</h4>
+                {% for url_info in summary['detected_urls'] %}
+                    <p>URL: {{ url_info.url }}, 検出エンジン: {{ url_info.positives }}/{{ url_info.total }}</p>
+                {% endfor %}
+            {% endif %}
+            {% if summary['undetected_downloaded_samples'] %}
+                <h4>未検出のダウンロードサンプル:</h4>
+                {% for sample in summary['undetected_downloaded_samples'] %}
+                    <p>SHA256: {{ sample.sha256 }}, 日付: {{ sample.date }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+    {% else %}
+        <p>マルウェアホスティングの履歴は見つかりませんでした。</p>
+    {% endif %}
+        <h2>独自のスコア</h2>
+        <div id="score-circle" class="score-circle"></div>
+    {% if summary['ip'] %}
+        <h2 id="traceroute-heading">通信経路取得中...</h2>
+        <pre id="traceroute-results">取得には数分程度かかる場合があります。</pre>
+    {% endif %}
     {% endif %}
     
     <br>
@@ -296,7 +337,7 @@
                 <tbody>
                     {% for engine, detail in details.items() %}
                     <tr>
-                        <td>{{ detail['engine_name'] }}</td>
+                        <td>{{ engine }}</td>
                         <td>{{ detail['method'] }}</td>
                         <td>{{ detail['category'] }}</td>
                         <td>{{ detail['result'] }}</td>
