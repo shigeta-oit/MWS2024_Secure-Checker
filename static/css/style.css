@@ -10,13 +10,15 @@ body {
 main.error,
 main.result,
 main.support,
-main.contact {
+main.contact,
+main.thank_you {
     padding-left: 40px;
     padding-right: 10px;
     font-size: 25px;
 }
 
-button {
+button,
+input.submit {
     font-family: inherit;
     border-radius: 8px;
     background: #666;

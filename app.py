@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from selenium import webdriver
-import datetime
+from datetime import datetime
 import threading,webbrowser
 import requests
 import time
@@ -505,6 +505,23 @@ def support():
 @app.route('/contact')
 def contact():
     return render_template('contact.html',ServiceName = ServiceName)
+@app.route('/submit', methods=['POST'])
+def submit():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        message = request.form['message']
+        
+        # 問い合わせ内容をファイルに保存
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open('inquiries.txt', 'a', encoding='utf-8') as f:
+            f.write(f"Timestamp: {timestamp}\n")
+            f.write(f"Name: {name}\n")
+            f.write(f"Email: {email}\n")
+            f.write(f"Message: {message}\n")
+            f.write("-" * 50 + "\n")
+        
+        return render_template('thank_you.html', name=name,ServiceName = ServiceName)
 #URLが入力された場合の処理
 @app.route('/scan_url', methods=['POST'])
 def scan_url():
