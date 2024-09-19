@@ -113,25 +113,59 @@ details[open] summary::after{
     transform: rotate(-135deg);
 }
 
-/*
-details {
-border: 1px solid #aaa;
-border-radius: 4px;
-padding: 0.5em 0.5em 0;
+.container {
+    display: flex;
 }
 
-summary {
-font-weight: bold;
-margin: -0.5em -0.5em 0;
-padding: 0.5em;
+.left-section, .right-section {
+    padding: 10px;
 }
 
-details[open] {
-padding: 0.5em;
+.left-section {
+    width: 40%;
+    position: relative;
 }
 
-details[open] summary {
-border-bottom: 1px solid #aaa;
-margin-bottom: 0.5em;
+.right-section {
+    width: 60%;
+    overflow-y: auto;
 }
-*/
+
+/* 円グラフの上にスコアを表示する */
+.score-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.score-circle {
+    display: inline-block;
+    margin-top: 20px;
+    width: 40vw;
+    height: 40vw; 
+    border-radius: 50%; /* 完全な円にする */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #0c0c0c;
+    text-align: center;
+}
+.score-red {
+    background-color: red;
+}
+.score-yellow {
+    background-color: yellow;
+}
+.score-green {
+    background-color: green;
+}
+.score-gray {
+    background-color: gray;
+}
+

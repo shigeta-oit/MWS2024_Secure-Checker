@@ -29,8 +29,6 @@
     <div class="graph">
         <canvas id="myPieChart"></canvas>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
     <script>
         var summary = JSON.parse('{{ summary|tojson|safe }}');
         const ctx = document.getElementById("myPieChart").getContext('2d');
@@ -93,77 +91,173 @@
             }
         });
     </script>
+    <script>
+        let fetchInterval;
+
+        // 通信経路結果をサーバーにリクエストして取得する関数
+        function fetchTraceroute() {
+            const ipAddress = "{{ ip_address }}";
+            if (!ipAddress) {
+                clearInterval(fetchInterval);  // IPアドレスがない場合、通信経路の取得を停止
+                return;
+            }
+
+            fetch(`/traceroute_result?ip_address=${ipAddress}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tracerouteResults = document.getElementById('traceroute-results');
+                    const tracerouteHeading = document.getElementById('traceroute-heading');
+
+                    if (data.result && data.result !== '通信経路の取得に失敗しました' && data.result !== '通信経路取得中...') {
+                        tracerouteResults.innerText = data.result;
+                        tracerouteHeading.innerText = '通信経路結果';
+                        clearInterval(fetchInterval);  // 取得完了後はインターバルを停止
+                    } else {
+                        tracerouteResults.innerText = data.result;
+                    }
+                })
+                .catch(error => {
+                    console.error('通信経路の取得に失敗しました:', error);
+                    clearInterval(fetchInterval);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            if ("{{ ip_address }}") {
+                fetchInterval = setInterval(fetchTraceroute, 10000);  // 10秒間隔で実行
+            }
+            // テンプレート変数をJavaScriptで使用する
+            const harmlessCount = Number("{{ data.harmless_count | default(0) }}");
+            const maliciousCount = Number("{{ data.malicious_count | default(0) }}");
+            const suspiciousCount = Number("{{ data.suspicious_count | default(0) }}");
+            const undetectedCount = Number("{{ data.undetected_count | default(0) }}");
+            const totalCount = harmlessCount + maliciousCount + suspiciousCount + undetectedCount;
+            const scoreElement = document.getElementById('score-circle');
+            
+            let scoreText = '';
+            let scoreClass = '';
+            // 未判定が半数以上の場合は "--" とグレー表示
+            if (undetectedCount > totalCount / 2) {
+                scoreText = 'SCORE: --';
+                scoreClass = 'score-gray';
+            } else {
+                // SCOREの算出
+                const score = (harmlessCount * 100) / totalCount;
+                if (score <= 30) {
+                    scoreClass = 'score-red';
+                } else if (score <= 70) {
+                    scoreClass = 'score-yellow';
+                } else {
+                    scoreClass = 'score-green';
+                }
+                scoreText = `SCORE: ${Math.round(score)}`;
+            }
+            // スコアを表示
+            scoreElement.innerText = scoreText;
+            scoreElement.classList.add(scoreClass);
+            // キャンバスの大きさを画面の40%に設定
+            function resizeCanvas() {
+                const canvas = document.getElementById('result-pie-chart');
+                const scoreCircle = document.getElementById('score-circle');
+                const screenWidth = window.innerWidth;
+                const canvasSize = screenWidth * 0.4; 
+                const scoreCircleSize = screenWidth * 0.35; 
+                canvas.width = canvasSize;
+                canvas.height = canvasSize;
+                scoreCircle.style.width = `${scoreCircleSize}px`;
+                scoreCircle.style.height = `${scoreCircleSize}px`;
+            }
+            // 初期サイズ設定
+            resizeCanvas();
+            // ウィンドウサイズ変更時に再設定
+            window.onresize = resizeCanvas;
+            // 円グラフのデータを初期化
+            const ctx = document.getElementById('result-pie-chart').getContext('2d');
+            const resultData = {
+                labels: ['安全', '悪意のある', '疑わしい', '未検出'],
+                datasets: [{
+                    label: 'スキャン結果',
+                    data: [harmlessCount, maliciousCount, suspiciousCount, undetectedCount], // データは動的にセット
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(201, 203, 207, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(201, 203, 207, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+            // グラフ内に文言を表示
+            new Chart(ctx, {
+                type: 'pie',
+                data: resultData,
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false,  // キャンバスのアスペクト比を無効化
+                }
+            });
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+        const totalCount = harmlessCount + maliciousCount + suspiciousCount + undetectedCount;
+        const scoreElement = document.getElementById('score-circle');
+        
+        let scoreText = '';
+        let scoreClass = '';
+
+        // 未判定が半数以上の場合は "--" とグレー表示
+        if (undetectedCount > totalCount / 2) {
+            scoreText = 'SCORE: --';
+            scoreClass = 'score-gray';
+        } else {
+            // SCOREの算出（ここでは適当に安全・悪意のある・疑わしい判定数を基に計算）
+            const score = (harmlessCount * 100) / totalCount;
+
+            if (score <= 30) {
+                scoreClass = 'score-red';
+            } else if (score <= 70) {
+                scoreClass = 'score-yellow';
+            } else {
+                scoreClass = 'score-green';
+            }
+
+            scoreText = `SCORE: ${Math.round(score)}`;
+        }
+
+        // スコアを表示
+        scoreElement.innerText = scoreText;
+        scoreElement.classList.add(scoreClass);
+    });
+    </script>
     <br>
     <!--URL-->
     {% if scan == "url" %}
     <p>URL: {{summary['url']}}</p>
     <p>最後に分析された日: {{summary['date']}}</p>
-    <!--
-    <br>
-    <p>悪意があるURLであると判定した数: {{summary['malicious']}}</p>
-    <p>悪意がある可能性のあるURLであると判定した数: {{summary['suspicious']}}</p>
-    <p>安全なURLであると判定した数: {{summary['harmless']}}</p>
-    <p>判定できなかった数: {{summary['undetected']}}</p>
-    <p>タイムアウトした数: {{summary['timeout']}}</p>
-    -->
     <p><img src="/static/img/tmp.jpg"></p>
     {% endif %}
     <!--ファイル-->
     {% if scan == "file" %}
     <p>最後に分析された日: {{summary['date']}}</p>
     <p>ファイルサイズ: {{summary['size']}} バイト</p>
-    <!--
-    <br>
-    <p>悪意があるファイルであると判定した数: {{summary['malicious']}}</p>
-    <p>悪意がある可能性のあるファイルであると判定した数: {{summary['suspicious']}}</p>
-    <p>安全なファイルであると判定した数: {{summary['harmless']}}</p>
-    <p>判定できなかった数: {{summary['undetected']}}</p>
-    <p>失敗した数: {{summary['failure']}}</p>
-    <p>サポートされていない数: {{summary['type_unsupported']}}</p>
-    <p>タイムアウトした数: {{summary['timeout']+summary['confirmed_timeout']}}</p>
-    -->
     {% endif %}
     <!--ファイルハッシュ-->
     {% if scan == "hash" %}
     <p>最後に分析された日: {{summary['date']}}</p>
     <p>ファイル名: {{summary['filename']}}</p>
     <p>ファイルサイズ: {{summary['size']}} バイト</p>
-    <!--
-    <br>
-    <p>悪意があるファイルであると判定した数: {{summary['malicious']}}</p>
-    <p>悪意がある可能性のあるファイルであると判定した数: {{summary['suspicious']}}</p>
-    <p>安全なファイルであると判定した数: {{summary['harmless']}}</p>
-    <p>判定できなかった数: {{summary['undetected']}}</p>
-    <p>失敗した数: {{summary['failure']}}</p>
-    <p>サポートされていない数: {{summary['type_unsupported']}}</p>
-    <p>タイムアウトした数: {{summary['timeout']+summary['confirmed_timeout']}}</p>
-    -->
     {% endif %}
-    <!--IPアドレス-->
-    {% if scan == "ip" %}
+    <!--IPアドレス ドメイン-->
+    {% if scan == "ip_domain" %}
     <p>最後に分析された日: {{summary['date']}}</p>
     <p>国: {{ summary['country'] }}</p>
-    <p>ISP: {{ summary['isp'] }}</p>
-    <!--
-    <br>
-    <p>悪意があるIPアドレスであると判定した数: {{summary['malicious']}}</p>
-    <p>悪意がある可能性のあるIPアドレスであると判定した数: {{summary['suspicious']}}</p>
-    <p>安全なIPアドレスであると判定した数: {{summary['harmless']}}</p>
-    <p>判定できなかった数: {{summary['undetected']}}</p>
-    <p>タイムアウトした数: {{summary['timeout']}}</p>
-    -->
-    {% endif %}
-    <!--ドメイン-->
-    {% if scan == "domain" %}
-    <p>最後に分析された日: {{summary['date']}}</p>
-    <!--
-    <br>
-    <p>悪意があるドメインであると判定した数: {{summary['malicious']}}</p>
-    <p>悪意がある可能性のあるドメインであると判定した数: {{summary['suspicious']}}</p>
-    <p>安全なドメインであると判定した数: {{summary['harmless']}}</p>
-    <p>判定できなかった数: {{summary['undetected']}}</p>
-    <p>タイムアウトした数: {{summary['timeout']}}</p>
-    -->
+    <p>ISP: {{ summary['asn'] }}</p>
     {% endif %}
     
     <br>

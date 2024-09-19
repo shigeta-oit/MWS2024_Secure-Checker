@@ -30,20 +30,11 @@
             <button type="submit">送信</button>
         </form>
         <br>
-        <!-- IPアドレス -->
-        <form action="/scan_ip" method="post">
+        <!-- IPアドレス ドメイン -->
+        <form action="/scan_ip_domain" method="post">
             <div class="form-group">
-                <label for="ip">IPアドレス</label>
-                <input type="text" class="form-control" name="ip">
-            </div>
-            <button type="submit">送信</button>
-        </form>
-        <br>
-        <!-- ドメイン -->
-        <form action="/scan_domain" method="post">
-            <div class="form-group">
-                        <label for="Domain">ドメイン</label>
-            <input type="text" class="form-control" name="domain">
+                <label for="ip_domain">IPアドレス ドメイン</label>
+                <input type="text" class="form-control" name="ip_domain">
             </div>
             <button type="submit">送信</button>
         </form>
@@ -51,7 +42,7 @@
         <!-- ハッシュ -->
         <form action="/scan_hash" method="post">
             <div class="form-group">
-                        <label for="Domain">ファイルハッシュ</label>
+                        <label for="hash">ファイルハッシュ</label>
             <input type="text" class="form-control" name="hash">
             </div>
             <button type="submit">送信</button>

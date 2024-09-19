@@ -19,6 +19,7 @@ API_KEY = 'a8084c5dfb91ac17e34c90f7ec51dbd46a967479a75ce71fa9f4412e47d81db3'
 app = Flask(__name__, static_url_path='/static')
 traceroute_results = {}
 traceroute_lock = threading.Lock()
+ip_domain_data = {"ip":None,"domain":None}
 
 TRANSLATIONS = {
     "blacklist": "ブラックリスト",
@@ -35,11 +36,20 @@ TRANSLATIONS = {
     "malware distribution site": "マルウェア配布サイト"
 }
 
+def is_ip_address(input_data):
+    """入力がIPアドレスかどうかを判定する"""
+    try:
+        socket.inet_aton(input_data)
+        return True
+    except socket.error:
+        return False
+def is_domain_name(input_data):
+    """入力がドメイン名かどうかを判定する"""
+    return validators.domain(input_data)
 def get_traceroute(ip_address):
     """通信経路を取得するための関数"""
     # Windows 環境と Unix 環境でコマンドを切り替え
     command = ['tracert', ip_address] if os.name == 'nt' else ['traceroute', ip_address]
-    
     try:
         # コマンドの実行
         result = subprocess.run(command, text=True, capture_output=True, timeout=180)
@@ -515,7 +525,7 @@ def analyze_hash(data):
                 "timeout":timeout,"confirmed_timeout":confirmed_timeout,"failure":failure,"type_unsupported":type_unsupported,
                 "name":name,"description":description,"actions":actions,"risk_level":risk_level,"recommendation":recommendation}
     return analyze_data,details
-#IPアドレスの分析
+#IPアドレス,ドメインの分析
 def analyze_ip(data):
     timestamp = data['data']['attributes'].get('last_analysis_date', 'Unknown')
     if timestamp == "Unknown":
@@ -527,8 +537,19 @@ def analyze_ip(data):
     undetected=data['data']['attributes']['last_analysis_stats']['undetected']
     harmless=data['data']['attributes']['last_analysis_stats']['harmless']
     timeout=data['data']['attributes']['last_analysis_stats']['timeout']
+    ip=ip_domain_data['ip']
+    domain=ip_domain_data['domain']
     country = data['data']['attributes'].get('country', 'Unknown')
-    isp = data['data']['attributes'].get('asn', 'Unknown')
+    asn = data['data']['attributes'].get('asn', 'Unknown')
+    as_owner = data['data']['attributes'].get('as_owner', 'Unknown')
+    reverse_dns = data['data']['attributes'].get('reverse_dns', 'Unknown')
+    network = cidr_to_range(data['data']['attributes'].get('network', 'Unknown'))
+    reputation = data['data']['attributes'].get('reputation', 'Unknown'),
+    detected_urls = data['data']['attributes'].get('detected_urls', [])
+    undetected_downloaded_samples = data['data']['attributes'].get('undetected_downloaded_samples', [])
+    resolutions = data['data']['attributes'].get('resolutions', 'Unknown')
+    hosted_domains = data['data']['attributes'].get('hosted_domains', 'Unknown'),
+    cidr_sub = data['data']['attributes'].get('network', 'Unknown')
     details=data["data"]["attributes"]["last_analysis_results"]
     behavior_info=interpret_results(data["data"]["attributes"]["last_analysis_results"])
     name=behavior_info["name"]
@@ -536,31 +557,14 @@ def analyze_ip(data):
     actions=behavior_info["actions"]
     risk_level=behavior_info["risk_level"]
     recommendation=behavior_info["recommendation"]
+    whois = extract_whois_info(data["data"]["attributes"].get('whois', 'Unknown'))
     analyze_data={"date":date,"malicious":malicious,"suspicious":suspicious,"undetected":undetected,"harmless":harmless,
                 "timeout":timeout,"confirmed_timeout":0,"failure":0,"type_unsupported":0,
-                "country":country,"isp":isp,
+                "country":country,"asn":asn,"as_owner":as_owner,"reverse_dns":reverse_dns,"network":network,"reputation":reputation,
+                "detected_urls":detected_urls,"undetected_downloaded_samples":undetected_downloaded_samples,"resolutions":resolutions,
+                "hosted_domains":hosted_domains,"cidr_sub":cidr_sub,"ip":ip,"domain":domain,
                 "name":name,"description":description,"actions":actions,"risk_level":risk_level,"recommendation":recommendation}
-    return analyze_data,details
-#ドメインの分析
-def analyze_domain(data):
-    timestamp = data['data']['attributes']['last_analysis_date']
-    date = datetime.datetime.fromtimestamp(timestamp)
-    malicious=data['data']['attributes']['last_analysis_stats']['malicious']
-    suspicious=data['data']['attributes']['last_analysis_stats']['suspicious']
-    undetected=data['data']['attributes']['last_analysis_stats']['undetected']
-    harmless=data['data']['attributes']['last_analysis_stats']['harmless']
-    timeout=data['data']['attributes']['last_analysis_stats']['timeout']
-    details=data["data"]["attributes"]["last_analysis_results"]
-    behavior_info=interpret_results(data["data"]["attributes"]["last_analysis_results"])
-    name=behavior_info["name"]
-    description=behavior_info["description"]
-    actions=behavior_info["actions"]
-    risk_level=behavior_info["risk_level"]
-    recommendation=behavior_info["recommendation"]
-    analyze_data={"date":date,"malicious":malicious,"suspicious":suspicious,"undetected":undetected,"harmless":harmless,
-                "timeout":timeout,"confirmed_timeout":0,"failure":0,"type_unsupported":0,
-                "name":name,"description":description,"actions":actions,"risk_level":risk_level,"recommendation":recommendation}
-    return analyze_data,details
+    return analyze_data,details,whois
 #ホーム画面
 @app.route('/')
 def index():
@@ -635,20 +639,42 @@ def scan_file():
 def scan_hash():
     hash = request.form['hash']
     return redirect(url_for('get_results', analysis_id=hash,scan="hash"))
-#IPアドレスが入力された場合の処理
-@app.route('/scan_ip', methods=['POST'])
-def scan_ip():
-    ip = request.form['ip']
-    if ip=="":
-        return redirect(url_for('error',message="IPアドレスを入力してください"))
-    return redirect(url_for('get_results', analysis_id=ip,scan="ip"))
-#ドメインが入力された場合の処理
-@app.route('/scan_domain', methods=['POST'])
-def scan_domain():
-    domain = request.form['domain']
-    if domain=="":
-        return redirect(url_for('error',message="ドメインを入力してください"))
-    return redirect(url_for('get_results', analysis_id=domain,scan="domain"))
+#IPアドレス,ドメインが入力された場合の処理
+@app.route('/scan_ip_domain', methods=['POST'])
+def scan_ip_domain():
+    global traceroute_results
+    global ip_domain_data
+    user_input = request.form['ip_domain']
+    if user_input=="":
+        return redirect(url_for('error',message="IPアドレスやドメインを入力してください"))
+    elif is_ip_address(user_input):
+        ip_address = user_input
+        domain = None
+    else:
+        if not user_input.startswith(('http://', 'https://')):
+            user_input = 'http://' + user_input
+        if validators.url(user_input):
+            parsed_url = urlparse(user_input)
+            domain = parsed_url.netloc
+            if is_domain_name(domain):
+                try:
+                    ip_address = socket.gethostbyname(domain)
+                except socket.gaierror:
+                    # IPアドレスが取得できない場合、ドメインの情報のみを表示
+                    ip_address = None
+            else:
+                return render_template('error.html', error="有効なドメイン形式ではありません。")
+        else:
+            return render_template('error.html', error="有効なURL形式ではありません。")
+    if ip_address:
+        # IPアドレスのスキャン
+        url = f'https://www.virustotal.com/api/v3/ip_addresses/{ip_address}'
+    else:
+        # ドメインのスキャン
+        url = f'https://www.virustotal.com/api/v3/domains/{domain}'
+    ip_domain_data["ip"]=ip_address
+    ip_domain_data["domain"]=domain
+    return redirect(url_for('get_results', analysis_id=url,scan="ip_domain"))
 #分析結果の取得と結果の表示
 @app.route('/results/<scan>/<analysis_id>')
 def get_results(analysis_id,scan):
@@ -699,36 +725,36 @@ def get_results(analysis_id,scan):
                     time.sleep(5)
             else:
                 return redirect(url_for('error',message=f"エラー:ファイルのデータが見つかりませんでした {response.status_code}"))
-    #IPアドレス
-    elif scan == "ip":
-        url = f'https://www.virustotal.com/api/v3/ip_addresses/{analysis_id}'
-        while True:
-            response = requests.get(url, headers=headers)
-            if response.status_code == 200:
-                result = response.json()
-                if 'data' in result and result['data']['attributes']['last_analysis_stats']['malicious'] == 0:
-                    analyzed_result,details=analyze_ip(result)
-                    return render_template('result.html', summary=analyzed_result,ServiceName=ServiceName,scan=scan,details=details)
-                else:
-                    time.sleep(5)
-            else:
-                return redirect(url_for('error',message=f"エラー: {response.status_code}"))
-    #ドメイン
-    elif scan == "domain":
-        url = f'https://www.virustotal.com/api/v3/domains/{analysis_id}'
-        while True:
-            response = requests.get(url, headers=headers)
-            if response.status_code == 200:
-                result = response.json()
-                if 'data' in result:
-                    analysis_stats = result['data']['attributes']['last_analysis_stats']
-                    if analysis_stats['malicious'] > 0 or analysis_stats['undetected'] > 0:
-                        analyzed_result,details=analyze_domain(result)
-                        return render_template('result.html', summary=analyzed_result,ServiceName=ServiceName,scan=scan,details=details)
-                else:
-                        time.sleep(5)
-            else:
-                return redirect(url_for('error',message=f"エラー: {response.status_code}"))
+    #IPアドレス,ドメイン
+    elif scan == "ip_domain":
+        url = analysis_id
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            result = response.json()
+            analyzed_result,details,whois=analyze_ip(result)
+            ip_address=ip_domain_data["ip"]
+            if ip_address:
+            # 別スレッドで通信経路の取得を行う
+                def fetch_traceroute():
+                    global traceroute_results
+                    with traceroute_lock:
+                        traceroute_results[ip_address] = '通信経路取得中...'
+                    traceroute_results[ip_address] = get_traceroute(ip_address)
+                traceroute_thread = threading.Thread(target=fetch_traceroute)
+                traceroute_thread.start()
+            return render_template('result.html', summary=analyzed_result,ServiceName=ServiceName,scan=scan,details=details,whois=whois)
+        else:
+            return redirect(url_for('error',message=f"エラー:情報の取得に失敗しました {response.status_code}"))
+
+@app.route('/traceroute_result')
+def traceroute_result():
+    ip_address = request.args.get('ip_address')
+
+    with traceroute_lock:
+        result = traceroute_results.get(ip_address, '通信経路の取得に失敗しました')
+
+    return jsonify({"result": result})
+
 #エラー画面の表示
 @app.route('/error/<message>')
 def error(message):
