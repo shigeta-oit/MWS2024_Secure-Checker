@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from selenium import webdriver
-from datetime import datetime
 import datetime
 import threading,webbrowser
 import requests
@@ -14,7 +13,7 @@ from urllib.parse import urlparse
 import validators
 import ipaddress
 
-ServiceName = "VirusTotal Scan"
+ServiceName = "セキュアチェッカー"
 API_KEY = '7c6ed7ab61d3cd5920a01710bf2bc03e01ef2672cb7160d1968d0926970c5ed0'
 app = Flask(__name__, static_url_path='/static')
 traceroute_results = {}
@@ -597,6 +596,10 @@ def support():
 @app.route('/contact')
 def contact():
     return render_template('contact.html',ServiceName = ServiceName)
+#概要
+@app.route('/outline')
+def outline():
+    return render_template('outline.html',ServiceName = ServiceName)
 @app.route('/submit', methods=['POST'])
 def submit():
     if request.method == 'POST':
@@ -605,7 +608,7 @@ def submit():
         message = request.form['message']
         
         # 問い合わせ内容をファイルに保存
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with open('inquiries.txt', 'a', encoding='utf-8') as f:
             f.write(f"Timestamp: {timestamp}\n")
             f.write(f"Name: {name}\n")
