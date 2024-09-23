@@ -36,7 +36,13 @@ TRANSLATIONS = {
     "phishing": "フィッシング",
     "spam": "スパム",
     "malicious site": "悪意のあるサイト",
-    "malware distribution site": "マルウェア配布サイト"
+    "malware distribution site": "マルウェア配布サイト",
+    "virus":"ウイルス",
+    "trojan":"トロイの木馬",
+    "worm":"ワーム",
+    "ransomware":"ランサムウェア",
+    "spyware":"スパイウェア",
+    "malware":"マルウェア"
 }
 
 def translate(details):
@@ -493,10 +499,14 @@ def interpret_results(result):
     return behavior_info
 #URLの分析
 def analyze_url(data):
-    url = data['data']['attributes']['url']
-    get_screenshot(url)
-    timestamp = data['data']['attributes']['last_analysis_date']
-    date = datetime.datetime.fromtimestamp(timestamp)
+    url = data['data']['attributes'].get('url', 'Unknown')
+    if url != "Unknown":
+        get_screenshot(url)
+    timestamp = data['data']['attributes'].get('last_analysis_date', 'Unknown')
+    if timestamp == "Unknown":
+        date = "不明"
+    else:
+        date = datetime.datetime.fromtimestamp(timestamp)
     malicious=data['data']['attributes']['last_analysis_stats']['malicious']
     suspicious=data['data']['attributes']['last_analysis_stats']['suspicious']
     undetected=data['data']['attributes']['last_analysis_stats']['undetected']
@@ -516,9 +526,12 @@ def analyze_url(data):
     return analyze_data,details
 #ファイルの分析
 def analyze_file(data):
-    timestamp = data['data']['attributes']['date']
-    date = datetime.datetime.fromtimestamp(timestamp)
-    size = data['meta']['file_info']['size']
+    timestamp = data['data']['attributes'].get('date', 'Unknown')
+    if timestamp == "Unknown":
+        date = "不明"
+    else:
+        date = datetime.datetime.fromtimestamp(timestamp)
+    size = data['meta']['file_info'].get('size', 'Unknown')
     malicious=data['data']['attributes']['stats']['malicious']
     suspicious=data['data']['attributes']['stats']['suspicious']
     undetected=data['data']['attributes']['stats']['undetected']
@@ -540,10 +553,13 @@ def analyze_file(data):
     return analyze_data,details
 #ファイルハッシュの分析
 def analyze_hash(data):
-    timestamp = data['data']['attributes']['last_analysis_date']
-    date = datetime.datetime.fromtimestamp(timestamp)
-    size = data['data']['attributes']['size']
-    filename = data['data']['attributes']['meaningful_name']
+    timestamp = data['data']['attributes'].get('last_analysis_date', 'Unknown')
+    if timestamp == "Unknown":
+        date = "不明"
+    else:
+        date = datetime.datetime.fromtimestamp(timestamp)
+    size = data['data']['attributes'].get('size', 'Unknown')
+    filename = data['data']['attributes'].get('meaningful_name', 'Unknown')
     malicious=data['data']['attributes']['last_analysis_stats']['malicious']
     suspicious=data['data']['attributes']['last_analysis_stats']['suspicious']
     undetected=data['data']['attributes']['last_analysis_stats']['undetected']
