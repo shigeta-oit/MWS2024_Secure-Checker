@@ -17,7 +17,10 @@
 {% endif %}
 <main class="result">
     <!--共通部分-->
-    <h1>スキャン結果</h1>
+    <h1>スキャン結果
+        危険度：{{ summary.rating }} / 5
+        <span id="danger-rating"></span>
+    </h1>
     {% if summary['malicious'] >= 1 and summary['risk_level'] != "不明" %}
     <p>危険であると考えられます</p>
     {% elif summary['suspicious'] >= 2 or summary['malicious'] >= 1 %}
@@ -121,118 +124,98 @@
                 });
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        function displayDangerRating(score) {
+            const container = document.getElementById('danger-rating');
+            container.innerHTML = '';  // 前の内容をクリア
 
-            if ("{{ ip_address }}") {
-                fetchInterval = setInterval(fetchTraceroute, 10000);  // 10秒間隔で実行
-            }
-            // テンプレート変数をJavaScriptで使用する
-            const harmlessCount = Number("{{ summary.harmless | default(0) }}");
-            const maliciousCount = Number("{{ summary.malicious | default(0) }}");
-            const suspiciousCount = Number("{{ summary.suspicious | default(0) }}");
-            const undetectedCount = Number("{{ summary.undetected | default(0) }}");
-            const totalCount = harmlessCount + maliciousCount + suspiciousCount + undetectedCount;
-            const scoreElement = document.getElementById('score-circle');
-            
-            let scoreText = '';
-            let scoreClass = '';
-            // 未判定が半数以上の場合は "--" とグレー表示
-            if (undetectedCount > totalCount / 2) {
-                scoreText = 'SCORE: --';
-                scoreClass = 'score-gray';
-            } else {
-                // SCOREの算出
-                const score = (harmlessCount * 100) / totalCount;
-                if (score <= 30) {
-                    scoreClass = 'score-red';
-                } else if (score <= 70) {
-                    scoreClass = 'score-yellow';
-                } else {
-                    scoreClass = 'score-green';
-                }
-                scoreText = `SCORE: ${Math.round(score)}`;
-            }
-            // スコアを表示
-            scoreElement.innerText = scoreText;
-            scoreElement.classList.add(scoreClass);
-            // キャンバスの大きさを画面の40%に設定
-            function resizeCanvas() {
-                const canvas = document.getElementById('result-pie-chart');
-                const scoreCircle = document.getElementById('score-circle');
-                const screenWidth = window.innerWidth;
-                const canvasSize = screenWidth * 0.4; 
-                const scoreCircleSize = screenWidth * 0.35; 
-                canvas.width = canvasSize;
-                canvas.height = canvasSize;
-                scoreCircle.style.width = `${scoreCircleSize}px`;
-                scoreCircle.style.height = `${scoreCircleSize}px`;
-            }
-            // 初期サイズ設定
-            resizeCanvas();
-            // ウィンドウサイズ変更時に再設定
-            window.onresize = resizeCanvas;
-            // 円グラフのデータを初期化
-            const ctx = document.getElementById('result-pie-chart').getContext('2d');
-            const resultData = {
-                labels: ['安全', '悪意のある', '疑わしい', '未検出'],
-                datasets: [{
-                    label: 'スキャン結果',
-                    data: [harmlessCount, maliciousCount, suspiciousCount, undetectedCount], // データは動的にセット
-                    backgroundColor: [
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(201, 203, 207, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(201, 203, 207, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            };
-            // グラフ内に文言を表示
-            new Chart(ctx, {
-                type: 'pie',
-                data: resultData,
-                options: {
-                    responsive: false,
-                    maintainAspectRatio: false,  // キャンバスのアスペクト比を無効化
-                }
-            });
-        });
-        document.addEventListener('DOMContentLoaded', function() {
-        const totalCount = harmlessCount + maliciousCount + suspiciousCount + undetectedCount;
-        const scoreElement = document.getElementById('score-circle');
-        
-        let scoreText = '';
-        let scoreClass = '';
-
-        // 未判定が半数以上の場合は "--" とグレー表示
-        if (undetectedCount > totalCount / 2) {
-            scoreText = 'SCORE: --';
-            scoreClass = 'score-gray';
-        } else {
-            // SCOREの算出（ここでは適当に安全・悪意のある・疑わしい判定数を基に計算）
-            const score = (harmlessCount * 100) / totalCount;
-
-            if (score <= 30) {
-                scoreClass = 'score-red';
-            } else if (score <= 70) {
-                scoreClass = 'score-yellow';
-            } else {
-                scoreClass = 'score-green';
+            // スコアが情報不足の場合は処理を終了
+            if (score === null || score === '情報不足' || isNaN(score)) {
+                return;  // 四角を表示しない
             }
 
-            scoreText = `SCORE: ${Math.round(score)}`;
+            const maxRating = 5;  // 最大評価は5つの四角
+            let color = 'green';  // 初期色は緑
+
+            // スコアに応じた色を設定
+            if (score >= 4) {
+                color = 'red';  // スコアが4以上なら赤
+            } else if (score === 3) {
+                color = 'yellow';  // スコアが3なら黄色
+            }
+
+            // スコアに基づいて四角を生成
+            for (let i = 0; i < maxRating; i++) {
+                const square = document.createElement('span');
+                square.textContent = i < score ? '■' : '□';  // スコアに応じて塗りつぶす
+                square.style.color = color;  // 色を設定
+                container.appendChild(square);  // 四角を追加
+            }
         }
 
-        // スコアを表示
-        scoreElement.innerText = scoreText;
-        scoreElement.classList.add(scoreClass);
+        document.addEventListener('DOMContentLoaded', function() {
+
+    if ("{{ ip_address }}") {
+        fetchInterval = setInterval(fetchTraceroute, 10000);  // 10秒間隔で実行
+    }
+
+    // テンプレート変数をJavaScriptで使用する
+    const harmlessCount = Number("{{ summary.harmless | default(0) }}");
+    const maliciousCount = Number("{{ summary.malicious | default(0) }}");
+    const suspiciousCount = Number("{{ summary.suspicious | default(0) }}");
+    const undetectedCount = Number("{{ summary.undetected | default(0) }}");
+    const ratingScore = Number("{{ summary.rating }}");  // 危険度スコアを取得
+
+    displayDangerRating(ratingScore);
+
+    // キャンバスの大きさを画面の40%に設定
+    function resizeCanvas() {
+        const canvas = document.getElementById('result-pie-chart');
+        const screenWidth = window.innerWidth;
+        const canvasSize = screenWidth * 0.32; 
+
+        canvas.width = canvasSize;
+        canvas.height = canvasSize;
+    }
+
+    // 初期サイズ設定
+    resizeCanvas();
+
+    // ウィンドウサイズ変更時に再設定
+    window.onresize = resizeCanvas;
+
+    // 円グラフのデータを初期化
+    const ctx = document.getElementById('result-pie-chart').getContext('2d');
+    const resultData = {
+        labels: ['安全', '悪意のある', '疑わしい', '未検出'],
+        datasets: [{
+            label: 'スキャン結果',
+            data: [harmlessCount, maliciousCount, suspiciousCount, undetectedCount], // データは動的にセット
+            backgroundColor: [
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(201, 203, 207, 0.2)'
+            ],
+            borderColor: [
+                'rgba(75, 192, 192, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(201, 203, 207, 1)'
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    // グラフ内に文言を表示
+    new Chart(ctx, {
+        type: 'pie',
+        data: resultData,
+        options: {
+            responsive: false,
+            maintainAspectRatio: false,  // キャンバスのアスペクト比を無効化
+        }
     });
+});
     </script>
     <br>
     <!--URL-->

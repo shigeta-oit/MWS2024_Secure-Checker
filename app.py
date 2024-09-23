@@ -85,7 +85,40 @@ def get_traceroute(ip_address):
     except Exception as e:
         # その他のエラー
         return f"通信経路の取得中にエラーが発生しました: {e}"
-
+def calculate_rating(significant_count,undetected_count ,reputation, total):
+    if undetected_count > total / 2:
+        return '情報不足'
+    else :
+        if reputation > 0:
+            if significant_count == 0:
+                return 1  
+            elif significant_count <= 2:
+                return 2  
+            elif significant_count <= 5:
+                return 3 
+            elif significant_count <= 10:
+                return 4 
+            else:
+                return 5 
+        elif reputation < 0:
+            if significant_count == 0:
+                return 2  
+            elif significant_count <= 2:
+                return 3  
+            elif significant_count <= 5:
+                return 4 
+            else:
+                return 5 
+        else :
+            if significant_count <= 2:
+                return 2  
+            elif significant_count <= 5:
+                return 3  
+            elif significant_count <= 10:
+                return 4 
+            else:
+                return 5 
+            
 def extract_whois_info(whois_data):
     cidr_pattern = re.compile(r'CIDR:\s*([^\n]*)')
     address_pattern = re.compile(r'address:\s*([^\n]*)')
@@ -520,9 +553,10 @@ def analyze_url(data):
     actions=behavior_info["actions"]
     risk_level=behavior_info["risk_level"]
     recommendation=behavior_info["recommendation"]
+    rating = calculate_rating(int(malicious + suspicious), int(undetected), int(reputation), int(malicious + suspicious + undetected + harmless + timeout))
     analyze_data={"url":url,"date":date,"malicious":malicious,"suspicious":suspicious,"undetected":undetected,"harmless":harmless,
                 "timeout":timeout,"confirmed_timeout":0,"failure":0,"type_unsupported":0,"reputation":reputation,
-                "name":name,"description":description,"actions":actions,"risk_level":risk_level,"recommendation":recommendation}
+                "name":name,"description":description,"actions":actions,"risk_level":risk_level,"recommendation":recommendation,"rating":rating}
     return analyze_data,details
 #ファイルの分析
 def analyze_file(data):
@@ -547,9 +581,10 @@ def analyze_file(data):
     actions=behavior_info["actions"]
     risk_level=behavior_info["risk_level"]
     recommendation=behavior_info["recommendation"]
+    rating = calculate_rating(malicious + suspicious, undetected, reputation, malicious + suspicious + undetected + harmless + timeout + confirmed_timeout + failure)
     analyze_data={"date":date,"size":size,"malicious":malicious,"suspicious":suspicious,"undetected":undetected,"harmless":harmless,
                 "timeout":timeout,"confirmed_timeout":confirmed_timeout,"failure":failure,"type_unsupported":type_unsupported,
-                "name":name,"description":description,"actions":actions,"risk_level":risk_level,"recommendation":recommendation}
+                "name":name,"description":description,"actions":actions,"risk_level":risk_level,"recommendation":recommendation,"rating":rating}
     return analyze_data,details
 #ファイルハッシュの分析
 def analyze_hash(data):
@@ -576,9 +611,10 @@ def analyze_hash(data):
     actions=behavior_info["actions"]
     risk_level=behavior_info["risk_level"]
     recommendation=behavior_info["recommendation"]
+    rating = calculate_rating(malicious + suspicious, undetected, reputation, malicious + suspicious + undetected + harmless + timeout + confirmed_timeout + failure)
     analyze_data={"date":date,"size":size,"filename":filename,"malicious":malicious,"suspicious":suspicious,"undetected":undetected,"harmless":harmless,
                 "timeout":timeout,"confirmed_timeout":confirmed_timeout,"failure":failure,"type_unsupported":type_unsupported,"reputation":reputation,
-                "name":name,"description":description,"actions":actions,"risk_level":risk_level,"recommendation":recommendation}
+                "name":name,"description":description,"actions":actions,"risk_level":risk_level,"recommendation":recommendation,"rating":rating}
     return analyze_data,details
 #IPアドレス,ドメインの分析
 def analyze_ip(data):
@@ -613,12 +649,13 @@ def analyze_ip(data):
     risk_level=behavior_info["risk_level"]
     recommendation=behavior_info["recommendation"]
     whois = extract_whois_info(data["data"]["attributes"].get('whois', 'Unknown'))
+    rating = calculate_rating(malicious + suspicious, undetected, reputation[0], malicious + suspicious + undetected + harmless + timeout)
     analyze_data={"date":date,"malicious":malicious,"suspicious":suspicious,"undetected":undetected,"harmless":harmless,
                 "timeout":timeout,"confirmed_timeout":0,"failure":0,"type_unsupported":0,
                 "country":country,"asn":asn,"as_owner":as_owner,"reverse_dns":reverse_dns,"network":network,"reputation":reputation,
                 "detected_urls":detected_urls,"undetected_downloaded_samples":undetected_downloaded_samples,"resolutions":resolutions,
                 "hosted_domains":hosted_domains,"cidr_sub":cidr_sub,"ip":ip,"domain":domain,
-                "name":name,"description":description,"actions":actions,"risk_level":risk_level,"recommendation":recommendation}
+                "name":name,"description":description,"actions":actions,"risk_level":risk_level,"recommendation":recommendation,"rating":rating}
     return analyze_data,details,whois
 #ホーム画面
 @app.route('/')
