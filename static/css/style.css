@@ -13,9 +13,9 @@ main.support,
 main.contact,
 main.thank_you,
 main.outline {
-    padding-left: 40px;
-    padding-right: 10px;
-    font-size: 25px;
+    padding-left: 80px;
+    padding-right: 40px;
+    font-size: 20px;
 }
 
 button,
@@ -57,7 +57,6 @@ img {
 
 table {
     max-width: 100%;
-    width: 40%;
     font-size: 14px;
 }
 
@@ -138,17 +137,5 @@ details[open] summary::after{
     font-weight: bold;
     color: #0c0c0c;
     text-align: center;
-}
-.score-red {
-    background-color: red;
-}
-.score-yellow {
-    background-color: yellow;
-}
-.score-green {
-    background-color: green;
-}
-.score-gray {
-    background-color: gray;
 }
 

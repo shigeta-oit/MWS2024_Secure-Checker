@@ -15,329 +15,292 @@
     }
 </style>
 {% endif %}
-<main class="result">
-    <!--共通部分-->
-    <h1>スキャン結果
-        危険度：{{ summary.rating }} / 5
-        <span id="danger-rating"></span>
-    </h1>
-    {% if summary['malicious'] >= 1 and summary['risk_level'] != "不明" %}
-    <p>危険であると考えられます</p>
-    {% elif summary['suspicious'] >= 2 or summary['malicious'] >= 1 %}
-    <p>危険な可能性があります</p>
-    {% else %}
-    <p>安全であると考えられます</p>
-    {% endif %}
-    <!--グラフ-->
-    <div class="graph">
-        <canvas id="myPieChart"></canvas>
-    </div>
-    <script>
-        var summary = JSON.parse('{{ summary|tojson|safe }}');
-        const ctx = document.getElementById("myPieChart").getContext('2d');
-        const myChart = new Chart(ctx, {
-            type: 'pie', 
-            data: {
-                labels: ["危険", "怪しい", "安全", "判定不可", "失敗", "非対応","タイムアウト"],
-                datasets: [{
-                    label: '分析結果',
-                    backgroundColor: ["#DD6666","#DDDD44","#66DD66","#6666DD", "#DD9966","#9966DD","#999999",],
-                    borderColor: '#FFFFFF',
-                    borderWidth: 2,
-                    data: [summary.malicious, summary.suspicious, summary.harmless, summary.undetected, 
-                    summary.failure, summary.type_unsupported, summary.timeout+summary.confirmed_timeout]
-                }]
-            },
-            plugins: [ChartDataLabels],
-            options: {
-                responsive: true,
-                layout: {
-                    padding: {
-                        top: 5,
-                    }
-                },
-                plugins: {
-                    legend: {
-                            position: 'top',
-                            labels: {
-                                color: "#FFFFFF",
-                            }
-                        },
-                    datalabels: { 
-                        display: function(context) {
-                            var value = context.dataset.data[context.dataIndex];
-                            return value > 0;
-                        },
-                        formatter: function(value, context) { 
-                            return context.chart.data.labels[context.dataIndex];
-                        },
-                        color:"#000000",
-                        clamp: true, 
-                        textAlign: 'center',
-                        font: {
-                            weight: "bold", 
-                            size: 10.5, 
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(tooltipItem) {
-                                const dataset = tooltipItem.dataset;
-                                const total = dataset.data.reduce((acc, value) => acc + value, 0);
-                                const value = dataset.data[tooltipItem.dataIndex];
-                                const percentage = ((value / total) * 100).toFixed(2);
-                                return `${dataset.label}: ${value} (${percentage}%)`;
-                            }
-                        }
-                    }
+
+<script>
+    let fetchInterval;
+    // 通信経路結果をサーバーにリクエストして取得する関数
+    function fetchTraceroute() {
+        const ipAddress = "{{ ip_address }}";
+        if (!ipAddress) {
+            clearInterval(fetchInterval);  // IPアドレスがない場合、通信経路の取得を停止
+            return;
+        }
+
+        fetch(`/traceroute_result?ip_address={{ ip_address }}`)
+            .then(response => response.json())
+            .then(data => {
+                const tracerouteResults = document.getElementById('traceroute-results');
+                const tracerouteHeading = document.getElementById('traceroute-heading');
+
+                if (data.result && data.result !== '通信経路の取得に失敗しました' && data.result !== '通信経路取得中...') {
+                    tracerouteResults.innerText = data.result;
+                    tracerouteHeading.innerText = '通信経路結果';
+                    clearInterval(fetchInterval);  // 取得完了後はインターバルを停止
+                } else {
+                    tracerouteResults.innerText = data.result;
                 }
-            }
-        });
-    </script>
-    <script>
-        let fetchInterval;
-        // 通信経路結果をサーバーにリクエストして取得する関数
-        function fetchTraceroute() {
-            const ipAddress = "{{ ip_address }}";
-            if (!ipAddress) {
-                clearInterval(fetchInterval);  // IPアドレスがない場合、通信経路の取得を停止
-                return;
-            }
-
-            fetch(`/traceroute_result?ip_address={{ ip_address }}`)
-                .then(response => response.json())
-                .then(data => {
-                    const tracerouteResults = document.getElementById('traceroute-results');
-                    const tracerouteHeading = document.getElementById('traceroute-heading');
-
-                    if (data.result && data.result !== '通信経路の取得に失敗しました' && data.result !== '通信経路取得中...') {
-                        tracerouteResults.innerText = data.result;
-                        tracerouteHeading.innerText = '通信経路結果';
-                        clearInterval(fetchInterval);  // 取得完了後はインターバルを停止
-                    } else {
-                        tracerouteResults.innerText = data.result;
-                    }
-                })
-                .catch(error => {
-                    console.error('通信経路の取得に失敗しました:', error);
-                    clearInterval(fetchInterval);
-                });
-        }
-
-        function displayDangerRating(score) {
-            const container = document.getElementById('danger-rating');
-            container.innerHTML = '';  // 前の内容をクリア
-
-            // スコアが情報不足の場合は処理を終了
-            if (score === null || score === '情報不足' || isNaN(score)) {
-                return;  // 四角を表示しない
-            }
-
-            const maxRating = 5;  // 最大評価は5つの四角
-            let color = 'green';  // 初期色は緑
-
-            // スコアに応じた色を設定
-            if (score >= 4) {
-                color = 'red';  // スコアが4以上なら赤
-            } else if (score === 3) {
-                color = 'yellow';  // スコアが3なら黄色
-            }
-
-            // スコアに基づいて四角を生成
-            for (let i = 0; i < maxRating; i++) {
-                const square = document.createElement('span');
-                square.textContent = i < score ? '■' : '□';  // スコアに応じて塗りつぶす
-                square.style.color = color;  // 色を設定
-                container.appendChild(square);  // 四角を追加
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-
-    if ("{{ ip_address }}") {
-        fetchInterval = setInterval(fetchTraceroute, 10000);  // 10秒間隔で実行
+            })
+            .catch(error => {
+                console.error('通信経路の取得に失敗しました:', error);
+                clearInterval(fetchInterval);
+            });
     }
 
-    // テンプレート変数をJavaScriptで使用する
-    const harmlessCount = Number("{{ summary.harmless | default(0) }}");
-    const maliciousCount = Number("{{ summary.malicious | default(0) }}");
-    const suspiciousCount = Number("{{ summary.suspicious | default(0) }}");
-    const undetectedCount = Number("{{ summary.undetected | default(0) }}");
-    const ratingScore = Number("{{ summary.rating }}");  // 危険度スコアを取得
+    function displayDangerRating(score) {
+        const container = document.getElementById('danger-rating');
+        container.innerHTML = '';  // 前の内容をクリア
 
-    displayDangerRating(ratingScore);
+        // スコアが情報不足の場合は処理を終了
+        if (score === null || score === '情報不足' || isNaN(score)) {
+            return;  // 四角を表示しない
+        }
 
-    // キャンバスの大きさを画面の40%に設定
-    function resizeCanvas() {
-        const canvas = document.getElementById('result-pie-chart');
-        const screenWidth = window.innerWidth;
-        const canvasSize = screenWidth * 0.32; 
+        const maxRating = 5;  // 最大評価は5つの四角
+        let color = 'green';  // 初期色は緑
 
-        canvas.width = canvasSize;
-        canvas.height = canvasSize;
+        // スコアに応じた色を設定
+        if (score >= 4) {
+            color = 'red';  // スコアが4以上なら赤
+        } else if (score === 3) {
+            color = 'yellow';  // スコアが3なら黄色
+        }
+
+        // スコアに基づいて四角を生成
+        for (let i = 0; i < maxRating; i++) {
+            const square = document.createElement('span');
+            square.textContent = i < score ? '■' : '□';  // スコアに応じて塗りつぶす
+            square.style.color = color;  // 色を設定
+            container.appendChild(square);  // 四角を追加
+        }
     }
 
-    // 初期サイズ設定
-    resizeCanvas();
-
-    // ウィンドウサイズ変更時に再設定
-    window.onresize = resizeCanvas;
-
-    // 円グラフのデータを初期化
-    const ctx = document.getElementById('result-pie-chart').getContext('2d');
-    const resultData = {
-        labels: ['安全', '悪意のある', '疑わしい', '未検出'],
-        datasets: [{
-            label: 'スキャン結果',
-            data: [harmlessCount, maliciousCount, suspiciousCount, undetectedCount], // データは動的にセット
-            backgroundColor: [
-                'rgba(75, 192, 192, 0.2)',
-                'rgba(255, 99, 132, 0.2)',
-                'rgba(255, 206, 86, 0.2)',
-                'rgba(201, 203, 207, 0.2)'
-            ],
-            borderColor: [
-                'rgba(75, 192, 192, 1)',
-                'rgba(255, 99, 132, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(201, 203, 207, 1)'
-            ],
-            borderWidth: 1
-        }]
-    };
-
-    // グラフ内に文言を表示
-    new Chart(ctx, {
-        type: 'pie',
-        data: resultData,
-        options: {
-            responsive: false,
-            maintainAspectRatio: false,  // キャンバスのアスペクト比を無効化
+    document.addEventListener('DOMContentLoaded', function () {
+        if ("{{ ip_address }}") {
+            fetchInterval = setInterval(fetchTraceroute, 10000);  // 10秒間隔で実行
         }
+
+        // テンプレート変数をJavaScriptで使用する
+        const harmlessCount = Number("{{ summary.harmless | default(0) }}");
+        const maliciousCount = Number("{{ summary.malicious | default(0) }}");
+        const suspiciousCount = Number("{{ summary.suspicious | default(0) }}");
+        const undetectedCount = Number("{{ summary.undetected | default(0) }}");
+        const ratingScore = Number("{{ summary.rating }}");  // 危険度スコアを取得
+        const totalCount = harmlessCount + maliciousCount + suspiciousCount + undetectedCount;
+        const scoreElement = document.getElementById('score-circle');
+
+        displayDangerRating(ratingScore);
     });
-});
-    </script>
-    <br>
-    <!--URL-->
-    {% if scan == "url" %}
-    <p>URL: {{summary['url']}}</p>
-    <p>最後に分析された日: {{summary['date']}}</p>
-    <p>レピュテーションスコア: {{ summary['reputation'] }}</p>
-    <p><img src="/static/img/tmp.jpg"></p>
-    {% endif %}
-    <!--ファイル-->
-    {% if scan == "file" %}
-    <p>最後に分析された日: {{summary['date']}}</p>
-    <p>ファイルサイズ: {{summary['size']}} バイト</p>
-    {% endif %}
-    <!--ファイルハッシュ-->
-    {% if scan == "hash" %}
-    <p>最後に分析された日: {{summary['date']}}</p>
-    <p>ファイル名: {{summary['filename']}}</p>
-    <p>ファイルサイズ: {{summary['size']}} バイト</p>
-    <p>レピュテーションスコア: {{ summary['reputation'] }}</p>
-    {% endif %}
-    <!--IPアドレス ドメイン-->
-    {% if scan == "ip_domain" %}
-    <p>最後に分析された日: {{summary['date']}}</p>
-    {% if summary['ip'] %}
-        <p>IPアドレス: {{ summary['ip'] }}</p>
-        <p>国: {{ summary['country'] }}</p>
-        <p>AS名: {{ summary['as_owner'] }}</p>
-        <p>AS番号: {{ summary['asn'] }}</p>
-        <p>ネットワーク範囲: {{ summary['network'] }}</p>
-        <p>管理組織: {{ whois.organization }}</p>
-        <p>説明: {{ whois.descr }}</p> 
-        <p>CIDR: {% if whois.cidr != 'Unknown' %}{{ whois.cidr }}
-            {% else %}{{ summary.cidr_sub }}{% endif %}</p>
-        <h2>WHOIS情報</h2>
-        <p>最終登録日: {{ whois.regdate }}</p>
-        <p>最終更新日: {{ whois.updated }}</p>
-        <h3>管理者情報</h3>
-        <p>管理者情報(admin-c): {{ whois['admin-c'] }}</p>
-        <p>技術担当者(tech-c): {{ whois['tech-c'] }}</p>
-        <p>不正使用連絡先(abuse-c): {{ whois['abuse-c'] }}</p>
-        <h3>連絡先情報</h3>
-        <p>住所: {{ whois.address }}</p>
-        <p>メールアドレス: {{ whois['e-mail'] }}</p>
-        <p>電話番号: {{ whois.phone }}</p>
-    {% else %}
-        <p>ドメイン: {{ summary['domain'] }}</p>
-        <p>このドメインにはIPアドレスは登録されていません。</p>
-    {% endif %}
-    <h2>コミュニティスコア:{{ summary['reputation'][0] }} </h2>
-    <h2>マルウェアホスティングの履歴</h2>
-    {% if summary['detected_urls'] or summary['undetected_downloaded_samples'] %}
-        <div class="result-section">
-            {% if summary['detected_urls'] %}
-                <h4>検出されたマルウェアのURL:</h4>
-                {% for url_info in summary['detected_urls'] %}
+</script>
+<main class="result">
+    <div class="container">
+        <!--共通部分-->
+        <div class="row">
+            <div class="col-sm-12">
+                <h1>スキャン結果
+                    危険度：{{ summary.rating }} / 5
+                    <span id="danger-rating"></span>
+                </h1>
+                {% if summary['malicious'] >= 1 and summary['risk_level'] != "不明" %}
+                <p>危険であると考えられます</p>
+                {% elif summary['suspicious'] >= 2 or summary['malicious'] >= 1 %}
+                <p>危険な可能性があります</p>
+                {% else %}
+                <p>安全であると考えられます</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="graph">
+                    <canvas id="myPieChart"></canvas>
+                </div>
+                <script>
+                    var summary = JSON.parse('{{ summary|tojson|safe }}');
+                    const ctx = document.getElementById("myPieChart").getContext('2d');
+                    const myChart = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: ["危険", "怪しい", "安全", "判定不可", "失敗", "非対応", "タイムアウト"],
+                            datasets: [{
+                                label: '分析結果',
+                                backgroundColor: ["#DD6666", "#DDDD44", "#66DD66", "#6666DD", "#DD9966", "#9966DD", "#999999",],
+                                borderColor: '#FFFFFF',
+                                borderWidth: 2,
+                                data: [summary.malicious, summary.suspicious, summary.harmless, summary.undetected,
+                                summary.failure, summary.type_unsupported, summary.timeout + summary.confirmed_timeout]
+                            }]
+                        },
+                        plugins: [ChartDataLabels],
+                        options: {
+                            responsive: true,
+                            layout: {
+                                padding: {
+                                    top: 5,
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        color: "#FFFFFF",
+                                    }
+                                },
+                                datalabels: {
+                                    display: function (context) {
+                                        var value = context.dataset.data[context.dataIndex];
+                                        return value > 0;
+                                    },
+                                    formatter: function (value, context) {
+                                        return context.chart.data.labels[context.dataIndex];
+                                    },
+                                    color: "#000000",
+                                    clamp: true,
+                                    textAlign: 'center',
+                                    font: {
+                                        weight: "bold",
+                                        size: 10.5,
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function (tooltipItem) {
+                                            const dataset = tooltipItem.dataset;
+                                            const total = dataset.data.reduce((acc, value) => acc + value, 0);
+                                            const value = dataset.data[tooltipItem.dataIndex];
+                                            const percentage = ((value / total) * 100).toFixed(2);
+                                            return `${dataset.label}: ${value} (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                </script>
+                <!--URL-->
+                {% if scan == "url" %}
+                <h2>基本情報</h2>
+                <p>URL: {{summary['url']}}</p>
+                <p>最後に分析された日: {{summary['date']}}</p>
+                <p>コミュニティスコア: {{ summary['reputation'] }}</p>
+                <p><img src="/static/img/tmp.jpg"></p>
+                {% endif %}
+                <!--ファイル-->
+                {% if scan == "file" %}
+                <h2>基本情報</h2>
+                <p>最後に分析された日: {{summary['date']}}</p>
+                <p>ファイルサイズ: {{summary['size']}} バイト</p>
+                {% endif %}
+                <!--ファイルハッシュ-->
+                {% if scan == "hash" %}
+                <h2>基本情報</h2>
+                <p>最後に分析された日: {{summary['date']}}</p>
+                <p>ファイル名: {{summary['filename']}}</p>
+                <p>ファイルサイズ: {{summary['size']}} バイト</p>
+                <p>コミュニティスコア: {{ summary['reputation'] }}</p>
+                {% endif %}
+                <!--IPアドレス ドメイン-->
+                {% if scan == "ip_domain" %}
+                <h2>基本情報</h2>
+                <p>最後に分析された日: {{summary['date']}}</p>
+                <p>コミュニティスコア:{{ summary['reputation'][0] }} </p>
+                {% if summary['ip'] %}
+                <p>IPアドレス: {{ summary['ip'] }}</p>
+                <p>国: {{ summary['country'] }}</p>
+                <p>AS名: {{ summary['as_owner'] }}</p>
+                <p>AS番号: {{ summary['asn'] }}</p>
+                <p>ネットワーク範囲: {{ summary['network'] }}</p>
+                <p>管理組織: {{ whois.organization }}</p>
+                <p>説明: {{ whois.descr }}</p>
+                <p>CIDR: {% if whois.cidr != 'Unknown' %}{{ whois.cidr }}
+                    {% else %}{{ summary.cidr_sub }}{% endif %}</p>
+                <h2>WHOIS情報</h2>
+                <p>最終登録日: {{ whois.regdate }}</p>
+                <p>最終更新日: {{ whois.updated }}</p>
+                <h3>管理者情報</h3>
+                <p>管理者情報(admin-c): {{ whois['admin-c'] }}</p>
+                <p>技術担当者(tech-c): {{ whois['tech-c'] }}</p>
+                <p>不正使用連絡先(abuse-c): {{ whois['abuse-c'] }}</p>
+                <h3>連絡先情報</h3>
+                <p>住所: {{ whois.address }}</p>
+                <p>メールアドレス: {{ whois['e-mail'] }}</p>
+                <p>電話番号: {{ whois.phone }}</p>
+                {% else %}
+                <p>ドメイン: {{ summary['domain'] }}</p>
+                <p>このドメインにはIPアドレスは登録されていません。</p>
+                {% endif %}
+                <h2>マルウェアホスティングの履歴</h2>
+                {% if summary['detected_urls'] or summary['undetected_downloaded_samples'] %}
+                <div class="result-section">
+                    {% if summary['detected_urls'] %}
+                    <h4>検出されたマルウェアのURL:</h4>
+                    {% for url_info in summary['detected_urls'] %}
                     <p>URL: {{ url_info.url }}, 検出エンジン: {{ url_info.positives }}/{{ url_info.total }}</p>
-                {% endfor %}
-            {% endif %}
-            {% if summary['undetected_downloaded_samples'] %}
-                <h4>未検出のダウンロードサンプル:</h4>
-                {% for sample in summary['undetected_downloaded_samples'] %}
-                    <p>SHA256: {{ sample.sha256 }}, 日付: {{ sample.date }}</p>
-                {% endfor %}
-            {% endif %}
-        </div>
-    {% else %}
-        <p>マルウェアホスティングの履歴は見つかりませんでした。</p>
-    {% endif %}
-        <h2>独自のスコア</h2>
-        <div id="score-circle" class="score-circle"></div>
-    {% if summary['ip'] %}
-        <h2 id="traceroute-heading">通信経路取得中...</h2>
-        <pre id="traceroute-results">取得には数分程度かかる場合があります。</pre>
-    {% endif %}
-    {% endif %}
-    
-    <br>
-    <p>検出された脅威の主な種類: {{summary['name']}}</p>
-    <p>概要: {{summary['description']}}</p>
-    <p>リスクレベル: {{summary['risk_level']}}</p>
-    <p>主な動作:</p>
-    <ul>
-        {% for action in summary.actions %}
-        <li>{{action}}</li>
-        {% endfor %}
-    </ul>
-    <p>推奨される対策:</p>
-    <p>{{ summary['recommendation'] }}</p>
-    <br>
-    <details>
-        <summary>
-            <p class="open">詳細な情報</p>
-        </summary>
-        {% if summary['malicious'] >= 1 and summary['risk_level'] != "不明" %}
-        <div style="background:#a72b2b">
-        {% elif summary['suspicious'] >= 2 and summary['risk_level'] != "不明" %}
-        <div style="background:#bdbb3c">
-        {% else %}
-        <div style="background:#32394d">
-        {% endif %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>エンジン名</th>
-                        <th>分析方法</th>
-                        <th>カテゴリー</th>
-                        <th>分析結果</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for engine, detail in details.items() %}
-                    <tr>
-                        <td>{{ engine }}</td>
-                        <td>{{ detail['method'] }}</td>
-                        <td>{{ detail['category'] }}</td>
-                        <td>{{ detail['result'] }}</td>
-                    </tr>
                     {% endfor %}
-                </tbody>
-            </table>
+                    {% endif %}
+                    {% if summary['undetected_downloaded_samples'] %}
+                    <h4>未検出のダウンロードサンプル:</h4>
+                    {% for sample in summary['undetected_downloaded_samples'] %}
+                    <p>SHA256: {{ sample.sha256 }}, 日付: {{ sample.date }}</p>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+                {% else %}
+                <p>マルウェアホスティングの履歴は見つかりませんでした。</p>
+                {% endif %}
+                {% if summary['ip'] %}
+                <h2 id="traceroute-heading">通信経路取得中...</h2>
+                <pre id="traceroute-results">取得には数分程度かかる場合があります。</pre>
+                {% endif %}
+                {% endif %}
+            </div>
+            <br>
+            <div class="col-sm-6">
+                <p>検出された脅威の主な種類: {{summary['name']}}</p>
+                <p>概要: {{summary['description']}}</p>
+                <p>リスクレベル: {{summary['risk_level']}}</p>
+                <p>主な動作:</p>
+                <ul>
+                    {% for action in summary.actions %}
+                    <li>{{action}}</li>
+                    {% endfor %}
+                </ul>
+                <p>推奨される対策:</p>
+                <p>{{ summary['recommendation'] }}</p>
+                <br>
+                <details>
+                    <summary>
+                        <p class="open">詳細な情報</p>
+                    </summary>
+                    {% if summary['malicious'] >= 1 and summary['risk_level'] != "不明" %}
+                    <div style="background:#a72b2b">
+                        {% elif summary['suspicious'] >= 2 and summary['risk_level'] != "不明" %}
+                        <div style="background:#bdbb3c">
+                            {% else %}
+                            <div style="background:#32394d">
+                                {% endif %}
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>エンジン名</th>
+                                            <th>分析方法</th>
+                                            <th>カテゴリー</th>
+                                            <th>分析結果</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for engine, detail in details.items() %}
+                                        <tr>
+                                            <td>{{ engine }}</td>
+                                            <td>{{ detail['method'] }}</td>
+                                            <td>{{ detail['category'] }}</td>
+                                            <td>{{ detail['result'] }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                </details>
+            </div>
         </div>
-    </details>
 </main>
 {% endblock %}

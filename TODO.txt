@@ -1,4 +1,3 @@
 Q&Aページの作成(templates/support.html)
 app.py 24行目 TRANSLATIONSの追加
-不必要なコードの削除(主にresult.html 124-235の一部)
 app.py 122行目からのメッセージの確認
