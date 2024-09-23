@@ -264,7 +264,7 @@
         <p>AS番号: {{ summary['asn'] }}</p>
         <p>ネットワーク範囲: {{ summary['network'] }}</p>
         <p>管理組織: {{ whois.organization }}</p>
-        <p>説明(descr): {{ whois.descr }}</p> 
+        <p>説明: {{ whois.descr }}</p> 
         <p>CIDR: {% if whois.cidr != 'Unknown' %}{{ whois.cidr }}
             {% else %}{{ summary.cidr_sub }}{% endif %}</p>
         <h2>WHOIS情報</h2>
