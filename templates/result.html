@@ -263,17 +263,26 @@
         <p>AS名: {{ summary['as_owner'] }}</p>
         <p>AS番号: {{ summary['asn'] }}</p>
         <p>ネットワーク範囲: {{ summary['network'] }}</p>
+        <p>管理組織: {{ whois.organization }}</p>
+        <p>説明(descr): {{ whois.descr }}</p> 
+        <p>CIDR: {% if whois.cidr != 'Unknown' %}{{ whois.cidr }}
+            {% else %}{{ summary.cidr_sub }}{% endif %}</p>
         <h2>WHOIS情報</h2>
-            <p>CIDR: {% if whois.cidr != 'Unknown' %}{{ whois.cidr }}
-                {% else %}{{ summary.cidr_sub }}{% endif %}</p>
-            <p>管理している住所: {{ whois.address }}</p>
-            <p>登録日: {{ whois.regdate }}</p>
-            <p>更新日: {{ whois.updated }}</p>
+        <p>最終登録日: {{ whois.regdate }}</p>
+        <p>最終更新日: {{ whois.updated }}</p>
+        <h3>管理者情報</h3>
+        <p>管理者情報(admin-c): {{ whois['admin-c'] }}</p>
+        <p>技術担当者(tech-c): {{ whois['tech-c'] }}</p>
+        <p>不正使用連絡先(abuse-c): {{ whois['abuse-c'] }}</p>
+        <h3>連絡先情報</h3>
+        <p>住所: {{ whois.address }}</p>
+        <p>メールアドレス: {{ whois['e-mail'] }}</p>
+        <p>電話番号: {{ whois.phone }}</p>
     {% else %}
         <p>ドメイン: {{ summary['domain'] }}</p>
         <p>このドメインにはIPアドレスは登録されていません。</p>
     {% endif %}
-    <h2>レピュテーションスコア:{{ summary['reputation'][0] }} </h2>
+    <h2>コミュニティスコア:{{ summary['reputation'][0] }} </h2>
     <h2>マルウェアホスティングの履歴</h2>
     {% if summary['detected_urls'] or summary['undetected_downloaded_samples'] %}
         <div class="result-section">

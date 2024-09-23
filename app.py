@@ -81,22 +81,42 @@ def get_traceroute(ip_address):
         return f"通信経路の取得中にエラーが発生しました: {e}"
 
 def extract_whois_info(whois_data):
-    """WHOIS情報からCIDR、住所、登録日、更新日を抽出する"""
     cidr_pattern = re.compile(r'CIDR:\s*([^\n]*)')
     address_pattern = re.compile(r'address:\s*([^\n]*)')
     regdate_pattern = re.compile(r'RegDate:\s*([^\n]*)')
     updated_pattern = re.compile(r'Updated:\s*([^\n]*)')
+    admin_pattern = re.compile(r'admin-c:\s*([^\n]*)')
+    tech_pattern = re.compile(r'tech-c:\s*([^\n]*)')
+    abuse_pattern = re.compile(r'abuse-c:\s*([^\n]*)')
+    email_pattern = re.compile(r'e-mail:\s*([^\n]*)')
+    phone_pattern = re.compile(r'phone:\s*([^\n]*)')
+    organization_pattern = re.compile(r'netname:\s*([^\n]*)')
+    descr_pattern = re.compile(r'descr:\s*([^\n]*)')
 
     cidr = cidr_pattern.search(whois_data).group(1) if cidr_pattern.search(whois_data) else 'N/A'
     address = address_pattern.search(whois_data).group(1) if address_pattern.search(whois_data) else 'N/A'
     regdate = regdate_pattern.search(whois_data).group(1) if regdate_pattern.search(whois_data) else 'N/A'
     updated = updated_pattern.search(whois_data).group(1) if updated_pattern.search(whois_data) else 'N/A'
+    admin = admin_pattern.search(whois_data).group(1) if admin_pattern.search(whois_data) else 'N/A'
+    tech = tech_pattern.search(whois_data).group(1) if tech_pattern.search(whois_data) else 'N/A'
+    abuse = abuse_pattern.search(whois_data).group(1) if abuse_pattern.search(whois_data) else 'N/A'
+    email = email_pattern.search(whois_data).group(1) if email_pattern.search(whois_data) else 'N/A'
+    phone = phone_pattern.search(whois_data).group(1) if phone_pattern.search(whois_data) else 'N/A'
+    organization = organization_pattern.search(whois_data).group(1) if organization_pattern.search(whois_data) else 'N/A'
+    descr = descr_pattern.search(whois_data).group(1) if descr_pattern.search(whois_data) else 'N/A'
 
     return {
         'cidr': cidr,
         'address': address,
         'regdate': regdate,
-        'updated': updated
+        'updated': updated,
+        'admin-c': admin,
+        'tech-c': tech,
+        'abuse-c': abuse,
+        'e-mail': email,
+        'phone': phone,
+        'organization': organization,
+        'descr': descr
     }
 
 def cidr_to_range(cidr):
