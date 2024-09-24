@@ -29,21 +29,7 @@ TRANSLATIONS = {
     "failure": "失敗",
     "type-unsupported": "非対応",
     "timeout": "タイムアウト",
-    "confirmed_timeout": "タイムアウト(確認済み)",
-    "unrated": "評価なし",
-    "clean": "安全",
-    "malware": "マルウェア",
-    "phishing": "フィッシング",
-    "spam": "スパム",
-    "malicious site": "悪意のあるサイト",
-    "malware distribution site": "マルウェア配布サイト",
-    "virus": "ウイルス",
-    "trojan": "トロイの木馬",
-    "worm": "ワーム",
-    "ransomware": "ランサムウェア",
-    "spyware": "スパイウェア",
-    "malware": "マルウェア",
-    "None": "なし",
+    "confirmed-timeout": "タイムアウト(確認済み)",
 }
 
 
@@ -53,7 +39,6 @@ def translate(details):
         method = analysis.get("method", "Unknown")
         category = analysis.get("category", "unrated")
         result_text = analysis.get("result", "unrated")
-        # 辞書を使用して翻訳
         translated_results[engine_name] = {
             "method": TRANSLATIONS.get(method, method),
             "category": TRANSLATIONS.get(category, category),
@@ -78,19 +63,13 @@ def is_domain_name(input_data):
 
 def get_traceroute(ip_address):
     """通信経路を取得するための関数"""
-    # Windows 環境と Unix 環境でコマンドを切り替え
     command = ["tracert", ip_address] if os.name == "nt" else ["traceroute", ip_address]
     try:
-        # コマンドの実行
         result = subprocess.run(command, text=True, capture_output=True, timeout=180)
-
-        # 正常な出力を返す
         return result.stdout
     except subprocess.CalledProcessError as e:
-        # コマンドの実行に失敗した場合
         return f"通信経路の取得に失敗しました: {e}"
     except Exception as e:
-        # その他のエラー
         return f"通信経路の取得中にエラーが発生しました: {e}"
 
 
@@ -911,7 +890,6 @@ def submit():
         email = request.form["email"]
         message = request.form["message"]
 
-        # 問い合わせ内容をファイルに保存
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with open("inquiries.txt", "a", encoding="utf-8") as f:
             f.write(f"Timestamp: {timestamp}\n")
@@ -1163,6 +1141,6 @@ def error(message):
 
 
 if __name__ == "__main__":
-    # threading.Timer(1.0, lambda: webbrowser.open('http://localhost:5000') ).start()
-    # app.run(debug=False)
-    app.run(debug=True)
+    threading.Timer(1.0, lambda: webbrowser.open('http://localhost:5000') ).start()
+    app.run(debug=False)
+    #app.run(debug=True)

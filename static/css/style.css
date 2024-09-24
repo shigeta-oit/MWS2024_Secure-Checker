@@ -113,7 +113,6 @@ details[open] summary::after{
     transform: rotate(-135deg);
 }
 
-/* 円グラフの上にスコアを表示する */
 .score-display {
     position: absolute;
     top: 50%;
@@ -129,7 +128,7 @@ details[open] summary::after{
     margin-top: 20px;
     width: 40vw;
     height: 40vw; 
-    border-radius: 50%; /* 完全な円にする */
+    border-radius: 50%; 
     display: flex;
     justify-content: center;
     align-items: center;
