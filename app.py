@@ -14,7 +14,9 @@ import validators
 import ipaddress
 
 ServiceName = "セキュアチェッカー"
-API_KEY = "7c6ed7ab61d3cd5920a01710bf2bc03e01ef2672cb7160d1968d0926970c5ed0"
+f = open('api.txt','r')
+API_KEY = f.read()
+f.close()
 app = Flask(__name__, static_url_path="/static")
 traceroute_results = {}
 traceroute_lock = threading.Lock()
