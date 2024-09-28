@@ -21,11 +21,14 @@
 
 1. 安全な場合  
 ![safe](./img/graph_safe.png)
+
 2. 危険な場合  
 ![danger](./img/graph.png)
-3. スクリーンショットの表示
+
+3. スクリーンショットの表示  
 ![screenshot](./img/screenshot.png)
-4. 脅威に関する情報や対策の表示
+
+4. 脅威に関する情報や対策の表示  
 ![information](./img/information.png)
 
 
