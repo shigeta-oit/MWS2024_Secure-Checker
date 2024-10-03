@@ -40,7 +40,7 @@
 git clone https://github.com/shigeta-oit/MWS2024_Secure-Checker
 ```
 
-3. API KEYをapi.txtに貼り付ける
+3. API KEYをapi.txtに貼り付けます
 
     1行目　`xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
 
@@ -49,6 +49,9 @@ git clone https://github.com/shigeta-oit/MWS2024_Secure-Checker
 ※requirements.txtに記載しているPythonの外部ライブラリをインストールしてください  
 
 5. 分析したいURL,ファイル等を入力して送信ボタンを押す
+
+## 使用上の注意
+- PhantomJSの使用上、macOSではスクリーンショットの表示機能が使用できません。
 
 ## 問い合わせ
 [e1n22026@st.oit.ac.jp](<e1n22026@st.oit.ac.jp>)
