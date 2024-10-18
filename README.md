@@ -14,6 +14,8 @@
 所属 : 大阪工業大学情報科学部
 
 ## 紹介動画
+
+音飛びがあるため、ダウンロードしてご視聴下さい。
 [セキュアチェッカーの紹介](https://drive.google.com/file/d/1cjhA_0CX_XOPm76PILH_djWMi20ncwe9/view?usp=sharing)
 
 ## セキュアチェッカーとは
